@@ -8,3 +8,4 @@ dist/
 data/uploads/
 data/exports/
 ml/weights/*.pth
+data/dev.db

@@ -25,4 +25,8 @@ def create_app(config_object=Config):
     from .routes import register_routes
 
     register_routes(app)
+
+    from .cli import register_cli
+
+    register_cli(app)
     return app

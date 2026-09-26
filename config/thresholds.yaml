@@ -1,0 +1,31 @@
+# Tunable thresholds. Values without a published source are engineering defaults
+# chosen for the prototype – change freely.
+
+scan:
+  low_confidence: 0.60          # below this -> "Not sure – please retake", sent to expert review
+  severity_activation: 0.5      # Grad-CAM activation above which a pixel counts as "affected"
+
+weather:
+  leaf_wetness_rh: 90           # hours with RH >= this count as leaf-wet (approximation, see docs/ASSUMPTIONS.md)
+  rain_mm_threshold: 0.5        # hourly precipitation (mm) counted as a rain hour
+  cache_ttl_seconds: 10800      # 3 hours
+  action_plan_hours: 48
+
+grid:
+  cell_deg: 0.045               # ~5 km at Malaysian latitudes
+  # Peninsular Malaysia bounding box used by the weather job
+  bbox: {lat_min: 1.25, lat_max: 6.75, lon_min: 99.6, lon_max: 104.5}
+
+risk:
+  bands: {medium: 0.4, high: 0.8}   # risk score -> Low / Medium / High
+  horizons_days: [0, 3, 5]
+  report_min_confidence: 0.80       # unconfirmed reports count only above this confidence
+
+national:
+  window_days: 14
+  # tonnes_at_risk / production -> supply risk level
+  supply_bands: {watch: 0.02, high: 0.05}   # TODO: verify source – placeholder thresholds
+
+fertiliser:
+  tolerance: 0.10               # each nutrient within ±10% of requirement
+  max_products: 2

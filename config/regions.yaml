@@ -1,0 +1,15 @@
+# Regions for the national dashboard and scan geolocation (Peninsular Malaysia states).
+# Centroids are approximate state-capital coordinates used only to assign scans to a region.
+regions:
+  - {code: JHR, name: Johor,           lat: 1.4854, lon: 103.7618}
+  - {code: MLK, name: Melaka,          lat: 2.1896, lon: 102.2501}
+  - {code: NSN, name: Negeri Sembilan, lat: 2.7258, lon: 101.9424}
+  - {code: SGR, name: Selangor,        lat: 3.0738, lon: 101.5183}
+  - {code: KUL, name: Kuala Lumpur,    lat: 3.1390, lon: 101.6869}
+  - {code: PHG, name: Pahang,          lat: 3.8126, lon: 103.3256}
+  - {code: PRK, name: Perak,           lat: 4.5975, lon: 101.0901}
+  - {code: KTN, name: Kelantan,        lat: 6.1254, lon: 102.2381}
+  - {code: TRG, name: Terengganu,      lat: 5.3117, lon: 103.1324}
+  - {code: KDH, name: Kedah,           lat: 6.1184, lon: 100.3685}
+  - {code: PNG, name: Pulau Pinang,    lat: 5.4141, lon: 100.3288}
+  - {code: PLS, name: Perlis,          lat: 6.4449, lon: 100.2048}

@@ -14,4 +14,7 @@ This project reuses code from **AgriTech** by Om Roy (https://github.com/omroy07
 
 | File in this repo | Source in AgriTech |
 |---|---|
-| (added in later phases) | |
+| `ml/models/resnet9.py` | ResNet9 architecture from `Plant Disease Detection/plant-disease.ipynb` |
+| `ml/labels.py` (`PLANTVILLAGE_LABELS`) | Class list from the same notebook |
+| `ml/weights/plant-disease-model.pth` (downloaded, not committed) | `Plant Disease Detection/plant-disease-model.pth` |
+| `ml/samples/*.JPG` | `Plant Disease Detection/test/` (PlantVillage images) |

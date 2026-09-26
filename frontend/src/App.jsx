@@ -3,9 +3,10 @@ import { useI18n } from './i18n/LanguageContext.jsx'
 import LanguageToggle from './components/LanguageToggle.jsx'
 import HealthStatus from './components/HealthStatus.jsx'
 import Placeholder from './components/Placeholder.jsx'
+import ScanTab from './components/ScanTab.jsx'
 
 const TABS = [
-  { id: 'scan', label: 'tabScan', render: (t) => <Placeholder title={t('tabScan')} /> },
+  { id: 'scan', label: 'tabScan', render: () => <ScanTab /> },
   { id: 'map', label: 'tabMap', render: (t) => <Placeholder title={t('tabMap')} /> },
   { id: 'nation', label: 'tabNation', render: (t) => <Placeholder title={t('tabNation')} /> },
   { id: 'arch', label: 'tabArch', render: (t) => <Placeholder title={t('tabArch')} /> },

@@ -8,6 +8,6 @@ COPY ml /srv/ml
 COPY config /srv/config
 COPY scripts /srv/scripts
 WORKDIR /srv/backend
-ENV FLASK_APP=wsgi.py
+ENV FLASK_APP=wsgi.py PYTHONPATH=/srv
 EXPOSE 5000
-CMD ["sh", "-c", "flask db upgrade && gunicorn -w 2 -b 0.0.0.0:5000 --timeout 120 wsgi:app"]
+CMD ["sh", "-c", "flask db upgrade && flask seed-base && (python /srv/scripts/download_model.py || true) && exec gunicorn -w 2 -b 0.0.0.0:5000 --timeout 120 wsgi:app"]
