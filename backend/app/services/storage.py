@@ -31,12 +31,19 @@ class LocalStorage:
 class OBSStorage:
     """Huawei Cloud OBS via its S3-compatible API."""
 
-    def __init__(self, endpoint, bucket, access_key, secret_key):
+    def __init__(self, endpoint, bucket, access_key, secret_key, region=""):
         import boto3
+        from botocore.config import Config
 
         self.bucket = bucket
+        # OBS only accepts virtual-hosted-style requests (bucket.obs.<region>.myhuaweicloud.com).
         self.client = boto3.client(
-            "s3", endpoint_url=endpoint, aws_access_key_id=access_key, aws_secret_access_key=secret_key
+            "s3",
+            endpoint_url=endpoint,
+            region_name=region or obs_region(endpoint),
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"}),
         )
 
     def save(self, key, data: bytes, content_type=None):
@@ -55,13 +62,20 @@ class OBSStorage:
             return False
 
 
+def obs_region(endpoint):
+    """'https://obs.ap-southeast-3.myhuaweicloud.com' -> 'ap-southeast-3'."""
+    host = endpoint.split("://")[-1].split("/")[0]
+    parts = host.split(".")
+    return parts[1] if len(parts) > 2 and parts[0] == "obs" else "ap-southeast-3"
+
+
 def get_storage():
     app = current_app
     if "storage" not in app.extensions:
         cfg = app.config
         if cfg["STORAGE_BACKEND"] == "obs":
             app.extensions["storage"] = OBSStorage(
-                cfg["OBS_ENDPOINT"], cfg["OBS_BUCKET"], cfg["OBS_ACCESS_KEY"], cfg["OBS_SECRET_KEY"]
+                cfg["OBS_ENDPOINT"], cfg["OBS_BUCKET"], cfg["OBS_ACCESS_KEY"], cfg["OBS_SECRET_KEY"], cfg["OBS_REGION"]
             )
         else:
             app.extensions["storage"] = LocalStorage(cfg["LOCAL_STORAGE_DIR"])

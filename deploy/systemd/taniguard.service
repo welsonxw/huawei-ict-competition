@@ -1,0 +1,19 @@
+# Start TaniGuard with Docker Compose at boot on a Huawei Cloud ECS.
+#   sudo cp deploy/systemd/taniguard.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now taniguard
+[Unit]
+Description=TaniGuard (Docker Compose, cloud profile)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/taniguard
+ExecStart=/usr/bin/docker compose -f docker-compose.cloud.yml up -d --build
+ExecStop=/usr/bin/docker compose -f docker-compose.cloud.yml down
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target

@@ -6,6 +6,7 @@ from .national import bp as national_bp
 from .review import bp as review_bp
 from .risk import bp as risk_bp
 from .scans import bp as scans_bp
+from .system import bp as system_bp
 
 
 def register_routes(app):
@@ -17,3 +18,4 @@ def register_routes(app):
     app.register_blueprint(auth_bp, url_prefix="/api")
     app.register_blueprint(review_bp, url_prefix="/api")
     app.register_blueprint(assistant_bp, url_prefix="/api")
+    app.register_blueprint(system_bp, url_prefix="/api")
