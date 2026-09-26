@@ -28,3 +28,11 @@ def disease_profiles(config_dir=None):
 
 def regions(config_dir=None):
     return load_config("regions.yaml", config_dir)["regions"]
+
+
+def fertiliser_products(config_dir=None):
+    return load_config("fertiliser_products.yaml", config_dir)["products"]
+
+
+def crop_requirements(config_dir=None):
+    return load_config("crop_requirements.yaml", config_dir)
