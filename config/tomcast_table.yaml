@@ -1,0 +1,11 @@
+# TOM-CAST daily disease severity values (DSV, 0–4) from leaf-wetness hours and mean temperature
+# during the wet period. Source: TOM-CAST (Pitblado 1992, Ridgetown College, Ontario), adapted from
+# FAST (Madden, Pennypacker & MacNab 1978). TODO: verify against the original publication.
+# Temperature bins: temp_min inclusive, temp_max exclusive (°C). `dsv` lists [min wet hours, DSV];
+# the last row whose min wet hours is reached applies. Temperatures outside all bins give DSV 0.
+threshold: 15          # accumulated DSV that triggers a spray in TOM-CAST
+bins:
+  - {temp_min: 13, temp_max: 18, dsv: [[0, 0], [7, 1], [16, 2], [21, 3]]}
+  - {temp_min: 18, temp_max: 21, dsv: [[0, 0], [4, 1], [9, 2], [16, 3], [23, 4]]}
+  - {temp_min: 21, temp_max: 26, dsv: [[0, 0], [3, 1], [6, 2], [13, 3], [21, 4]]}
+  - {temp_min: 26, temp_max: 30, dsv: [[0, 0], [4, 1], [9, 2], [16, 3], [23, 4]]}

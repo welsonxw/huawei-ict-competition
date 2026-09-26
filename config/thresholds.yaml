@@ -17,9 +17,16 @@ grid:
   bbox: {lat_min: 1.25, lat_max: 6.75, lon_min: 99.6, lon_max: 104.5}
 
 risk:
-  bands: {medium: 0.4, high: 0.8}   # risk score -> Low / Medium / High
+  # risk = S_weather x (1 + sum of report weights). Weather alone tops out at 1.0 and Medium is strictly above 1.0, so Medium needs
+  # favourable weather plus nearby reports, and High needs strong weather with several recent reports.
+  bands: {medium: 1.0, high: 2.0}
   horizons_days: [0, 3, 5]
   report_min_confidence: 0.80       # unconfirmed reports count only above this confidence
+  cache_ttl_seconds: 10800
+  # Weather-score parameters (engineering defaults, not from a publication – tune with DOA/MARDI).
+  rule: {window_days: 3, full_fraction: 0.75}   # score 1 once 75% of hours are favourable
+  tomcast: {window_days: 7}
+  vector_proxy: {window_days: 7, temp_low: 25, temp_high: 33, dry_day_mm: 1.0, rain_suppression: 0.5}
 
 national:
   window_days: 14

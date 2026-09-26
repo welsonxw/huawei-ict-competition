@@ -36,3 +36,11 @@ def fertiliser_products(config_dir=None):
 
 def crop_requirements(config_dir=None):
     return load_config("crop_requirements.yaml", config_dir)
+
+
+def tomcast_table(config_dir=None):
+    return load_config("tomcast_table.yaml", config_dir)
+
+
+def demo_scenario(config_dir=None):
+    return load_config("demo_scenario.yaml", config_dir)

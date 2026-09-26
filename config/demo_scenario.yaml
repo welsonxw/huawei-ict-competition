@@ -1,0 +1,19 @@
+# Simulated scenario used by scripts/seed_demo.py. NOTHING here is real data.
+# Every row it creates has is_simulated = true and the UI shows "Simulated scenario".
+label: "Simulated scenario"
+days: 21
+seed: 42
+chilli_anthracnose:
+  origin: {lat: 1.99, lon: 103.32}   # inland Johor, chosen for the demo only
+  start_radius_km: 1.5
+  growth_km_per_day: 1.0
+  scans_first_day: 4
+  scans_added_per_day: 0.9
+tomato_early_blight:
+  clusters:
+    - {lat: 4.47, lon: 101.38, radius_km: 12, count: 20}   # Cameron Highlands area
+    - {lat: 1.60, lon: 103.62, radius_km: 20, count: 10}   # southern Johor
+# Simulated "rainy spell": wetness factor per day relative to today (0 = dry, 1 = very wet).
+weather:
+  wet_start: 0.15          # wetness 3+ days before today
+  wet_per_day: 0.08       # added each day from 3 days ago onward

@@ -30,3 +30,15 @@ Decisions made where the build prompt left room for interpretation.
 - **Nutrients with a zero requirement are unconstrained.** MgO is shown on labels but not optimised, because the brief's requirement table has only N, P₂O₅ and K₂O.
 - **Editing products and requirements** is done in the DB tables, which are seeded from YAML and never overwritten. An edit UI protected by the expert role comes with login in Phase 6.
 - **Previous fertiliser** is free text that is repeated back as a caution. It does not change the amounts (no DOA carry-over coefficients yet).
+
+## Phase 4 – Risk engine and outbreak map
+
+- **Risk formula:** `risk = S_weather × (1 + Σ w_dist × w_age)`, with both weights linear (1 at 0 km / 0 days, 0 at the disease's spread radius / decay period). Only confirmed reports, or unreviewed real-model reports with confidence ≥ `risk.report_min_confidence`, are counted. Pending, stub and low-confidence scans are ignored.
+- **Bands are Medium > 1.0 and High ≥ 2.0.** Weather alone gives at most 1.0, so a cell only turns Medium or High once there are nearby reports. These cut-offs are engineering defaults and still need checking against field data.
+- **Leaf wetness** is taken to mean RH ≥ 90%, because Open-Meteo has no leaf-wetness sensor data.
+- **TOM-CAST** DSV table is in `config/tomcast_table.yaml`. It adds up DSV over 7 days and scales against a threshold of 15.
+- **Hutton** needs a minimum temperature ≥ 10 °C and ≥ 6 h of RH ≥ 90% on 2 consecutive days. It scores 0.5 when only one of the two days qualifies. The rule comes from the UK and must be recalibrated for Malaysia.
+- **Rule model:** the share of hours in the last 3 days that are inside the temperature range and meet the moisture trigger. The score reaches 1 when 75% of hours qualify.
+- **Vector proxy (whitefly):** 50% share of dry days + 50% heat (mean daily max from 25 to 33 °C) over 7 days, halved if it rained on the target day. These thresholds are TODO and need DOA/MARDI entomology input.
+- **Weather** is Open-Meteo hourly data for the past 7 days plus 7 forecast days per ~5 km cell. It is fetched in batches, cached in Redis for 3 h, and refreshed every 3 h by APScheduler (`ENABLE_SCHEDULER=true`) or on demand with `flask refresh-risk`. Risk layers are cached in Redis and invalidated whenever a new scan is saved.
+- **Simulated scenario:** `scripts/seed_demo.py` (or `flask seed-demo [--clear]`) creates about 300 scans marked `is_simulated = true`, using fixed settings in `config/demo_scenario.yaml`. The demo layer uses fixed, made-up "rainy spell" weather, not Open-Meteo. Simulated scans never feed into the live layer, and the map shows "Simulated scenario – not real data" whenever the demo layer is on.
