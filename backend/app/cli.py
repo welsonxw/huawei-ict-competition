@@ -1,7 +1,10 @@
+import os
+
 import click
 from flask import Flask
 
 from .models import Plot
+from .services.auth import ROLES, create_user
 from .services.demo import clear_demo, seed_demo
 from .services.fertiliser import seed_fertiliser
 from .services.profiles import seed_profiles
@@ -24,7 +27,24 @@ def register_cli(app: Flask):
         if Plot.query.filter_by(is_simulated=False).count() == 0:
             for name, crop, lat, lon in DEFAULT_PLOTS:
                 create_plot(name, crop, lat, lon, area_m2=400, num_plants=200)
+        for username, role in (("farmer", "farmer"), ("expert", "expert")):
+            password = os.getenv(f"DEMO_{role.upper()}_PASSWORD")
+            if password:
+                create_user(username, password, role)
+                click.echo(f"demo user '{username}' ({role}) ready")
         click.echo("seeded disease profiles, fertiliser tables and plots")
+
+    @app.cli.command("create-user")
+    @click.argument("username")
+    @click.option("--role", type=click.Choice(ROLES), default="farmer")
+    @click.password_option()
+    def create_user_cmd(username, role, password):
+        """Create or reset a login (farmer or expert)."""
+        try:
+            create_user(username, password, role)
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        click.echo(f"user '{username}' ({role}) saved")
 
     @app.cli.command("seed-demo")
     @click.option("--clear", is_flag=True, help="Remove the simulated scenario instead of creating it.")

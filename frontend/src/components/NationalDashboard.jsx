@@ -4,6 +4,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip as
 import 'leaflet/dist/leaflet.css'
 import { apiGet } from '../lib/api.js'
 import { useI18n } from '../i18n/LanguageContext.jsx'
+import { errorText } from '../lib/errors.js'
 
 const LEVEL_COLORS = { low: '#84CC16', watch: '#D97706', high: '#B91C1C', insufficient: '#D1D5DB' }
 const CROP_COLORS = { chilli: '#B91C1C', tomato: '#1F5C3A' }
@@ -21,19 +22,19 @@ export default function NationalDashboard() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    apiGet('/api/regions/geojson').then(setGeo).catch((e) => setError(e.message))
+    apiGet('/api/regions/geojson').then(setGeo).catch((e) => setError(e))
     apiGet('/api/risk/diseases')
       .then((m) => {
         setDemoScans(m.demo_scans)
         setScenario(m.demo_scans > 0 ? 'demo' : 'live')
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e))
   }, [])
 
   useEffect(() => {
     if (!scenario) return
     setError(null)
-    apiGet('/api/national', { scenario }).then(setData).catch((e) => setError(e.message))
+    apiGet('/api/national', { scenario }).then(setData).catch((e) => setError(e))
   }, [scenario])
 
   const rows = useMemo(() => data?.crops?.[crop]?.regions ?? [], [data, crop])
@@ -79,7 +80,7 @@ export default function NationalDashboard() {
           </select>
         </label>
       </div>
-      {error && <p className="text-red-700">{error}</p>}
+      {error && <p className="text-red-700">{errorText(error, t)}</p>}
 
       {data && (
         <p className="rounded-lg bg-leaf-light px-3 py-2">

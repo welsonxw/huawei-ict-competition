@@ -3,6 +3,7 @@ import { CircleMarker, MapContainer, Rectangle, TileLayer, Tooltip, useMap } fro
 import 'leaflet/dist/leaflet.css'
 import { apiGet } from '../lib/api.js'
 import { useI18n } from '../i18n/LanguageContext.jsx'
+import { errorText } from '../lib/errors.js'
 
 const COLORS = { low: '#84CC16', medium: '#D97706', high: '#B91C1C', unknown: '#9CA3AF' }
 const MALAYSIA = [4.2, 102.0]
@@ -38,7 +39,7 @@ export default function OutbreakMap() {
         setMeta(m)
         setScenario(m.demo_scans > 0 ? 'demo' : 'live')
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e))
   }, [])
 
   const horizons = meta?.horizons ?? [0, 3, 5]
@@ -50,7 +51,7 @@ export default function OutbreakMap() {
     setError(null)
     apiGet('/api/risk', { crop, disease, horizon, scenario })
       .then(setData)
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e))
   }, [crop, disease, horizon, scenario])
 
   const shown = useMemo(() => (data?.cells ?? []).filter((c) => c.band !== 'low' || c.reports > 0), [data])
@@ -112,7 +113,7 @@ export default function OutbreakMap() {
           </span>
         </label>
       </div>
-      {error && <p className="text-red-700">{error}</p>}
+      {error && <p className="text-red-700">{errorText(error, t)}</p>}
 
       <div className="h-[420px] overflow-hidden rounded-xl border border-stone-200">
         <MapContainer center={MALAYSIA} zoom={7} className="h-full w-full" scrollWheelZoom={false}>

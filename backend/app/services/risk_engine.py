@@ -141,7 +141,7 @@ def compute(crop, disease, horizon, scenario="live", now=None, forecasts=None):
         "counts": {b: sum(1 for c in out if c["band"] == b) for b in ("low", "medium", "high", "unknown")},
         "cells": out,
         "report_points": [
-            {"lat": r.lat, "lon": r.lon, "age_days": round((now - r.created_at).total_seconds() / 86400, 1)} for r in rows
+            {"lat": round(r.lat, 2), "lon": round(r.lon, 2), "age_days": round((now - r.created_at).total_seconds() / 86400, 1)} for r in rows
         ],
         "generated_at": now.isoformat(timespec="minutes"),
     }

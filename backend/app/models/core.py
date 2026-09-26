@@ -71,6 +71,19 @@ class Scan(db.Model):
         }
 
 
+class User(db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False, unique=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    # role: farmer | expert
+    role = db.Column(db.String(16), nullable=False, default="farmer")
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    def to_dict(self):
+        return {"id": self.id, "username": self.username, "role": self.role}
+
+
 class ConfirmedLabel(db.Model):
     __tablename__ = "confirmed_labels"
     id = db.Column(db.Integer, primary_key=True)

@@ -5,13 +5,16 @@ from flask_cors import CORS
 
 from .config import ROOT_DIR, Config
 from .extensions import cache, db, migrate
+from .services.auth import persistent_secret
 
 
 def create_app(config_object=Config):
     app = Flask(__name__)
     app.config.from_object(config_object)
     if app.config["CORS_ORIGINS"]:
-        CORS(app, origins=app.config["CORS_ORIGINS"])
+        CORS(app, origins=app.config["CORS_ORIGINS"], supports_credentials=True)
+    if not app.config["SECRET_KEY"]:
+        app.config["SECRET_KEY"] = persistent_secret(Path(app.config["LOCAL_STORAGE_DIR"]).parent / ".secret_key")
 
     db_uri = app.config["SQLALCHEMY_DATABASE_URI"]
     if db_uri.startswith("sqlite:///"):
