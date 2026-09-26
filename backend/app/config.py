@@ -5,9 +5,10 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{ROOT_DIR / 'data' / 'dev.db'}")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL") or f"sqlite:///{ROOT_DIR / 'data' / 'dev.db'}"
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
     CONFIG_DIR = Path(os.getenv("CONFIG_DIR", ROOT_DIR / "config"))
     STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local")
     LOCAL_STORAGE_DIR = Path(os.getenv("LOCAL_STORAGE_DIR", ROOT_DIR / "data" / "uploads"))

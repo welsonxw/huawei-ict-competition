@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from flask import Flask
 from flask_cors import CORS
 
@@ -8,7 +10,12 @@ from .extensions import cache, db, migrate
 def create_app(config_object=Config):
     app = Flask(__name__)
     app.config.from_object(config_object)
-    CORS(app)
+    if app.config["CORS_ORIGINS"]:
+        CORS(app, origins=app.config["CORS_ORIGINS"])
+
+    db_uri = app.config["SQLALCHEMY_DATABASE_URI"]
+    if db_uri.startswith("sqlite:///"):
+        Path(db_uri.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
 
     db.init_app(app)
     migrate.init_app(app, db, directory=str(ROOT_DIR / "backend" / "migrations"))

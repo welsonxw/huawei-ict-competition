@@ -6,9 +6,13 @@ export default function HealthStatus() {
   const { t } = useI18n()
   const [health, setHealth] = useState(null)
   useEffect(() => {
-    apiGet('/api/health')
-      .then(setHealth)
-      .catch((err) => setHealth(err.body || { database: 'error', redis: 'error' }))
+    const check = () =>
+      apiGet('/api/health')
+        .then(setHealth)
+        .catch((err) => setHealth(err.body || { database: 'error', redis: 'error' }))
+    check()
+    const id = setInterval(check, 30000)
+    return () => clearInterval(id)
   }, [])
   if (!health) return null
   const item = (name, value) => (
