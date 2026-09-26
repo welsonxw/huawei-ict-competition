@@ -1,0 +1,140 @@
+# Disease profiles (seeded into the disease_profiles table).
+# Rows marked TODO need values from DOA / published literature before real use.
+# spread_mode: weather | vector | contact | none
+# weather_model: rule | tomcast | hutton | vector_proxy | none
+# advice_type: spray_timing | vector_control | hygiene | nutrition | none
+
+defaults:
+  spread_radius_km: 5
+  report_decay_days: 14
+
+profiles:
+  - crop: chilli
+    disease: anthracnose
+    name: {en: Anthracnose, ms: Antraknos}
+    spread_mode: weather
+    weather_model: rule
+    temp_min: 20
+    temp_max: 30
+    moisture: {rh_min: 80, rain_events: true}
+    advice_type: spray_timing
+    source_refs: "Build prompt table (temp 20–30 °C, RH > 80%, rain events). TODO: verify source (DOA Pakej Teknologi Cili)."
+
+  - crop: chilli
+    disease: leaf_curl
+    name: {en: Leaf curl, ms: Kerekot daun}
+    spread_mode: vector
+    weather_model: vector_proxy
+    temp_min: null
+    temp_max: null
+    moisture: {dry_spell_raises: true, rain_suppresses: true}
+    advice_type: vector_control
+    source_refs: "Whitefly-borne. Higher temperature = more whiteflies; dry spells raise risk, rain suppresses. TODO: verify source."
+
+  - crop: chilli
+    disease: cercospora_leaf_spot
+    name: {en: Cercospora leaf spot, ms: Bintik daun Cercospora}
+    spread_mode: weather
+    weather_model: rule
+    temp_min: null   # TODO: verify source
+    temp_max: null   # TODO: verify source
+    moisture: {rh_min: null, rain_events: true}   # TODO: verify source
+    advice_type: spray_timing
+    source_refs: "TODO: verify source – temperature range and moisture trigger not yet sourced."
+
+  - crop: chilli
+    disease: nutrient_deficiency
+    name: {en: Nutrient deficiency, ms: Kekurangan nutrien}
+    spread_mode: none
+    weather_model: none
+    advice_type: nutrition
+    source_refs: "Not infectious; excluded from spread risk."
+
+  - crop: tomato
+    disease: early_blight
+    name: {en: Early blight, ms: Hawar awal}
+    spread_mode: weather
+    weather_model: tomcast
+    temp_min: 18
+    temp_max: 29
+    moisture: {leaf_wetness: true, rain_events: true}
+    advice_type: spray_timing
+    source_refs: "TOM-CAST (Pitblado 1992). Temp 18–29 °C from build prompt."
+
+  - crop: tomato
+    disease: septoria_leaf_spot
+    name: {en: Septoria leaf spot, ms: Bintik daun Septoria}
+    spread_mode: weather
+    weather_model: tomcast
+    temp_min: 18
+    temp_max: 29
+    moisture: {leaf_wetness: true, rain_events: true}
+    advice_type: spray_timing
+    source_refs: "TOM-CAST, same parameters as early blight (build prompt)."
+
+  - crop: tomato
+    disease: late_blight
+    name: {en: Late blight, ms: Hawar lewat}
+    spread_mode: weather
+    weather_model: hutton
+    temp_min: 10
+    temp_max: null
+    moisture: {rh_min: 90, rh_hours: 6, consecutive_days: 2}
+    advice_type: spray_timing
+    source_refs: "Hutton criteria (UK, AHDB): min temp 10 °C, >= 90% RH for 6 h on 2 consecutive days. Needs recalibration for Malaysia."
+
+  - crop: tomato
+    disease: bacterial_spot
+    name: {en: Bacterial spot, ms: Bintik bakteria}
+    spread_mode: weather
+    weather_model: rule
+    temp_min: 24
+    temp_max: 32
+    moisture: {rh_min: 80, rain_events: true}
+    advice_type: spray_timing
+    source_refs: "Build prompt table (24–32 °C, RH >= 80%, rain events). TODO: verify source."
+
+  - crop: tomato
+    disease: yellow_leaf_curl
+    name: {en: Yellow leaf curl, ms: Kerekot daun kuning}
+    spread_mode: vector
+    weather_model: vector_proxy
+    temp_min: null
+    temp_max: null
+    moisture: {dry_spell_raises: true, rain_suppresses: true}
+    advice_type: vector_control
+    source_refs: "Whitefly-borne (TYLCV). Dry spells raise risk."
+
+  - crop: tomato
+    disease: mosaic_virus
+    name: {en: Mosaic virus, ms: Virus mozek}
+    spread_mode: contact
+    weather_model: none
+    advice_type: hygiene
+    source_refs: "Contact / mechanical spread; weather not modelled."
+
+  # The tomato model also outputs these PlantVillage classes. They are not in the build
+  # prompt's table, so no weather model is attached (local reports only).
+  - crop: tomato
+    disease: leaf_mold
+    name: {en: Leaf mould, ms: Kulapuk daun}
+    spread_mode: weather
+    weather_model: none
+    advice_type: spray_timing
+    source_refs: "TODO: verify source – not in build prompt table; weather model not set."
+
+  - crop: tomato
+    disease: target_spot
+    name: {en: Target spot, ms: Bintik sasaran}
+    spread_mode: weather
+    weather_model: none
+    advice_type: spray_timing
+    source_refs: "TODO: verify source – not in build prompt table; weather model not set."
+
+  - crop: tomato
+    disease: spider_mites
+    name: {en: Spider mites, ms: Hama labah-labah}
+    spread_mode: vector
+    weather_model: none
+    advice_type: vector_control
+    source_refs: "Pest, not a pathogen. TODO: verify source."
