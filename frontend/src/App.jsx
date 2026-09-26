@@ -4,6 +4,7 @@ import LanguageToggle from './components/LanguageToggle.jsx'
 import HealthStatus from './components/HealthStatus.jsx'
 import LoginBox from './components/LoginBox.jsx'
 import ArchitectureTab from './components/ArchitectureTab.jsx'
+import FarmGame from './components/FarmGame.jsx'
 import ScanTab from './components/ScanTab.jsx'
 import OutbreakMap from './components/OutbreakMap.jsx'
 import NationalDashboard from './components/NationalDashboard.jsx'
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'scan', label: 'tabScan', render: () => <ScanTab /> },
   { id: 'map', label: 'tabMap', render: () => <OutbreakMap /> },
   { id: 'nation', label: 'tabNation', render: () => <NationalDashboard /> },
+  { id: 'game', label: 'tabGame', render: () => <FarmGame /> },
   { id: 'arch', label: 'tabArch', render: () => <ArchitectureTab /> },
 ]
 

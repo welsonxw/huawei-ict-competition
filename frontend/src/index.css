@@ -8,6 +8,7 @@
   }
   .btn-primary { @apply btn bg-leaf text-white hover:bg-leaf-dark; }
   .btn-secondary { @apply btn border-2 border-leaf bg-white text-leaf hover:bg-leaf-light; }
+  .btn-pad { @apply flex h-12 min-w-[48px] items-center justify-center rounded-lg border-2 border-leaf px-2 font-bold text-leaf; }
   .card { @apply rounded-xl border border-stone-200 bg-white p-4 shadow-sm; }
   .field { @apply min-h-[44px] w-full rounded-lg border border-stone-300 bg-white px-3 text-base; }
   .label { @apply mb-1 block font-semibold; }
