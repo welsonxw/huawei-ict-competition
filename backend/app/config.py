@@ -1,0 +1,33 @@
+import os
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+
+
+class Config:
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{ROOT_DIR / 'data' / 'dev.db'}")
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    CONFIG_DIR = Path(os.getenv("CONFIG_DIR", ROOT_DIR / "config"))
+    STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local")
+    LOCAL_STORAGE_DIR = Path(os.getenv("LOCAL_STORAGE_DIR", ROOT_DIR / "data" / "uploads"))
+    OBS_ENDPOINT = os.getenv("OBS_ENDPOINT", "")
+    OBS_BUCKET = os.getenv("OBS_BUCKET", "")
+    OBS_ACCESS_KEY = os.getenv("OBS_ACCESS_KEY", "")
+    OBS_SECRET_KEY = os.getenv("OBS_SECRET_KEY", "")
+    PREDICTOR = os.getenv("PREDICTOR", "local")
+    MODEL_DIR = Path(os.getenv("MODEL_DIR", ROOT_DIR / "ml" / "weights"))
+    MODELARTS_ENDPOINT = os.getenv("MODELARTS_ENDPOINT", "")
+    MODELARTS_TOKEN = os.getenv("MODELARTS_TOKEN", "")
+    LLM_ENDPOINT = os.getenv("LLM_ENDPOINT", "")
+    LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+    LLM_MODEL = os.getenv("LLM_MODEL", "")
+    ENABLE_SCHEDULER = os.getenv("ENABLE_SCHEDULER", "false").lower() == "true"
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+
+
+class TestConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
+    REDIS_URL = "fakeredis://"
+    ENABLE_SCHEDULER = False
