@@ -92,3 +92,42 @@ def test_real_tomato_model_on_agritech_sample():
     assert out["is_stub"] is False
     assert out["label"] == "early_blight" and out["confidence"] > 0.6
     assert 0 <= out["severity"] <= 1
+
+
+def test_stub_prediction_always_goes_to_review(app, client, tmp_path):
+    app.extensions["predictor"] = predictor_mod.LocalTorchPredictor(tmp_path)
+    plot = create_plot("Plot A", "chilli", 1.85, 103.33)
+    body = _upload(client, plot.id, crop="chilli").get_json()
+    assert body["scan"]["is_stub"] is True and body["low_confidence"] is True
+    assert body["scan"]["review_status"] == "pending"
+
+
+def test_crop_must_match_plot(app, client):
+    app.extensions["predictor"] = FixedPredictor(0.9)
+    plot = create_plot("Plot A", "chilli", 1.85, 103.33)
+    assert _upload(client, plot.id, crop="tomato").status_code == 400
+
+
+def test_forecast_failure_still_returns_scan(app, client, monkeypatch):
+    app.extensions["predictor"] = FixedPredictor(0.9)
+
+    def boom(lat, lon):
+        raise ConnectionError("redis down")
+
+    monkeypatch.setattr("app.services.scans.get_forecast", boom)
+    plot = create_plot("Plot C", "tomato", 1.85, 103.33)
+    res = _upload(client, plot.id)
+    assert res.status_code == 201
+    assert res.get_json()["action_plan"]["weather"] is None
+
+
+def test_plot_rejects_invalid_coordinates(client):
+    for lat, lon in (("nan", 103), (91, 103), (1.8, "inf")):
+        res = client.post("/api/plots", json={"name": "X", "crop": "tomato", "lat": lat, "lon": lon})
+        assert res.status_code == 400
+
+
+def test_missing_weights_are_picked_up_later(tmp_path, monkeypatch):
+    p = predictor_mod.LocalTorchPredictor(tmp_path)
+    assert p._load("chilli") is None
+    assert "chilli" not in p._models

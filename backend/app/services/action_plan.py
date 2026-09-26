@@ -40,9 +40,9 @@ T = {
         "en": "No rain expected in the next 48 hours – a good window to spray, early morning or late afternoon.",
         "ms": "Tiada hujan dijangka dalam 48 jam akan datang – masa sesuai untuk menyembur, awal pagi atau lewat petang.",
     },
-    "humid": {
-        "en": "Leaves will stay wet for about {hours} hours in the next 2 days – improve air flow by pruning and avoid overhead watering.",
-        "ms": "Daun akan kekal basah kira-kira {hours} jam dalam 2 hari akan datang – tingkatkan pengudaraan dengan mencantas dan elakkan siraman dari atas.",
+    "remove_leaves_humid": {
+        "en": "Remove badly affected leaves and fruit from {plot} and bag them (do not compost). Leaves will stay wet for about {hours} hours in the next 2 days – prune for air flow and avoid overhead watering.",
+        "ms": "Buang daun dan buah yang teruk dijangkiti di {plot} dan masukkan ke dalam beg (jangan jadikan kompos). Daun akan kekal basah kira-kira {hours} jam dalam 2 hari akan datang – cantas untuk pengudaraan dan elakkan siraman dari atas.",
     },
     "no_forecast": {
         "en": "Weather forecast unavailable – spray only when leaves are dry and no rain is expected for a few hours.",
@@ -63,6 +63,22 @@ T = {
     "vector_dry": {
         "en": "Dry weather ahead – whiteflies build up quickly. Check traps every 2–3 days.",
         "ms": "Cuaca kering dijangka – lalat putih membiak dengan cepat. Periksa perangkap setiap 2–3 hari.",
+    },
+    "mite_check": {
+        "en": "Check the underside of leaves in {plot} for tiny mites and fine webbing.",
+        "ms": "Periksa bahagian bawah daun di {plot} untuk hama kecil dan sarang halus.",
+    },
+    "mite_remove": {
+        "en": "Remove heavily webbed leaves; bag them and take them off the farm.",
+        "ms": "Buang daun yang banyak bersarang; masukkan ke dalam beg dan bawa keluar dari ladang.",
+    },
+    "mite_spray": {
+        "en": "If mites are many, use a miticide registered for {crop}; follow the label dose.",
+        "ms": "Jika hama banyak, gunakan racun hama yang berdaftar untuk {crop}; ikut dos pada label.",
+    },
+    "mite_dry": {
+        "en": "Hot, dry weather ahead – mites multiply quickly. Check again in 2–3 days.",
+        "ms": "Cuaca panas dan kering dijangka – hama membiak dengan cepat. Periksa semula dalam 2–3 hari.",
     },
     "hygiene_remove": {
         "en": "Remove infected plants from {plot}. Wash hands and tools with soap before touching healthy plants.",
@@ -102,7 +118,10 @@ def build_steps(disease, advice_type, wx, low_confidence=False, bacterial=False)
 
     if advice_type == "spray_timing":
         steps.append(("only_plot", {}))
-        steps.append(("remove_leaves", {}))
+        if wx and wx["wet_hours"] >= 6:
+            steps.append(("remove_leaves_humid", {"hours": wx["wet_hours"]}))
+        else:
+            steps.append(("remove_leaves", {}))
         steps.append(("spray_bacterial" if bacterial else "spray", {}))
         if wx is None:
             steps.append(("no_forecast", {}))
@@ -110,8 +129,10 @@ def build_steps(disease, advice_type, wx, low_confidence=False, bacterial=False)
             steps.append(("rain_wait", {"when": wx["rain_when"]}))
         else:
             steps.append(("dry_spray", {}))
-        if wx and wx["wet_hours"] >= 6:
-            steps.append(("humid", {"hours": wx["wet_hours"]}))
+    elif disease == "spider_mites":
+        steps.extend([("mite_check", {}), ("mite_remove", {}), ("mite_spray", {})])
+        if wx and wx["rain_hours"] == 0:
+            steps.append(("mite_dry", {}))
     elif advice_type == "vector_control":
         steps.append(("vector_check", {}))
         steps.append(("vector_remove", {}))
@@ -122,8 +143,7 @@ def build_steps(disease, advice_type, wx, low_confidence=False, bacterial=False)
         steps.extend([("hygiene_remove", {}), ("hygiene_tobacco", {}), ("hygiene_seed", {})])
     elif advice_type == "nutrition":
         steps.append(("nutrition", {}))
-    steps.append(("monitor", {}))
-    return steps[:5]
+    return steps[:4] + [("monitor", {})]
 
 
 def render(steps, lang, crop, plot_name):

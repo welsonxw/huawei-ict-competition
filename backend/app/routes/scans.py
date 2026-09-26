@@ -1,3 +1,5 @@
+import math
+
 from flask import Blueprint, Response, abort, jsonify, request
 
 from ..extensions import db
@@ -27,6 +29,8 @@ def add_plot():
         return jsonify(error="name, crop, lat and lon are required"), 400
     if crop not in CROPS or not name:
         return jsonify(error="crop must be chilli or tomato"), 400
+    if not (math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180):
+        return jsonify(error="lat/lon out of range"), 400
     plot = create_plot(name, crop, lat, lon, data.get("area_m2"), data.get("num_plants"))
     return jsonify(plot.to_dict()), 201
 
@@ -44,6 +48,10 @@ def create_scan():
             return jsonify(error="plot not found"), 404
     lat = request.form.get("lat", type=float)
     lon = request.form.get("lon", type=float)
+    if lat is not None and lon is not None and not (
+        math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180
+    ):
+        return jsonify(error="lat/lon out of range"), 400
     try:
         _, payload = run_scan(file.read(), crop, plot, lat, lon)
     except ScanError as exc:

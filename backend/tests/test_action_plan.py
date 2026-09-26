@@ -62,3 +62,14 @@ def test_low_confidence_plan_asks_retake():
 def test_missing_forecast_is_handled():
     result = plan("anthracnose", "chilli", SPRAY, "Plot B", None, WEATHER_CFG)
     assert "no_forecast" in result["steps"]
+
+
+def test_humid_spray_plan_keeps_monitor_step():
+    result = plan("early_blight", "tomato", SPRAY, "Plot C", forecast(rain_at=9, rh=95), WEATHER_CFG)
+    assert "remove_leaves_humid" in result["steps"] and result["steps"][-1] == "monitor" and len(result["steps"]) == 5
+
+
+def test_spider_mites_get_mite_advice_not_whitefly():
+    result = plan("spider_mites", "tomato", {"advice_type": "vector_control"}, "Plot C", forecast(), WEATHER_CFG)
+    text = " ".join(result["en"]).lower()
+    assert "mite" in text and "whitefl" not in text

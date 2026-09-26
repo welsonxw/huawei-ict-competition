@@ -73,18 +73,19 @@ class LocalTorchPredictor(Predictor):
             path = self.model_dir / TOMATO_WEIGHTS
             if path.exists():
                 model = ResNet9(3, len(PLANTVILLAGE_LABELS))
-                model.load_state_dict(torch.load(path, map_location="cpu"))
+                model.load_state_dict(torch.load(path, map_location="cpu", weights_only=True))
                 idx = [i for i, name in enumerate(PLANTVILLAGE_LABELS) if name in TOMATO_LABEL_MAP]
                 entry = (model.eval(), idx, [TOMATO_LABEL_MAP[PLANTVILLAGE_LABELS[i]] for i in idx], "tomato-resnet9-v1")
         elif crop == "chilli":
             path = self.model_dir / CHILLI_WEIGHTS
             if path.exists():
-                ckpt = torch.load(path, map_location="cpu")
+                ckpt = torch.load(path, map_location="cpu", weights_only=True)
                 labels = ckpt["labels"]
                 model = ResNet9(3, len(labels))
                 model.load_state_dict(ckpt["state_dict"])
                 entry = (model.eval(), list(range(len(labels))), labels, ckpt.get("version", "chilli-resnet9"))
-        self._models[crop] = entry
+        if entry is not None:
+            self._models[crop] = entry
         return entry
 
     def predict(self, image, crop):

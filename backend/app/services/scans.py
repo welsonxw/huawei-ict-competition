@@ -1,4 +1,5 @@
 import io
+import logging
 import uuid
 
 from PIL import Image, UnidentifiedImageError
@@ -14,6 +15,9 @@ from .storage import get_storage
 from .weather import get_forecast
 
 CROPS = ("chilli", "tomato")
+MAX_PIXELS = 40_000_000
+
+log = logging.getLogger(__name__)
 
 
 class ScanError(ValueError):
@@ -39,19 +43,23 @@ def run_scan(image_bytes, crop, plot: Plot | None, lat=None, lon=None):
         raise ScanError("crop must be chilli or tomato")
     try:
         image = Image.open(io.BytesIO(image_bytes))
+        if image.width * image.height > MAX_PIXELS:
+            raise ScanError("image is too large; please use a photo under 40 megapixels")
         image.load()
         image = image.convert("RGB")
-    except (UnidentifiedImageError, OSError) as exc:
+    except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
         raise ScanError("file is not a readable image") from exc
 
     if plot is not None:
+        if plot.crop != crop:
+            raise ScanError(f"{plot.name} is a {plot.crop} plot")
         lat, lon = plot.lat, plot.lon
     if lat is None or lon is None:
         raise ScanError("plot_id or lat/lon is required")
 
     cfg = thresholds()
     result = get_predictor().predict(image, crop)
-    low_conf = result["confidence"] < cfg["scan"]["low_confidence"]
+    low_conf = result["is_stub"] or result["confidence"] < cfg["scan"]["low_confidence"]
 
     storage = get_storage()
     key = uuid.uuid4().hex
@@ -71,7 +79,11 @@ def run_scan(image_bytes, crop, plot: Plot | None, lat=None, lon=None):
     db.session.commit()
 
     plot_name = plot.name if plot else {"en": "this plot", "ms": "plot ini"}
-    forecast = get_forecast(lat, lon)
+    try:
+        forecast = get_forecast(lat, lon)
+    except Exception:  # noqa: BLE001 – the scan is saved; a plan without weather is still useful
+        log.exception("forecast unavailable for scan %s", scan.id)
+        forecast = None
     plan = {}
     for lang in ("en", "ms"):
         name = plot_name if isinstance(plot_name, str) else plot_name[lang]
