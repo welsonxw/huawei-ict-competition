@@ -5,11 +5,12 @@ import HealthStatus from './components/HealthStatus.jsx'
 import Placeholder from './components/Placeholder.jsx'
 import ScanTab from './components/ScanTab.jsx'
 import OutbreakMap from './components/OutbreakMap.jsx'
+import NationalDashboard from './components/NationalDashboard.jsx'
 
 const TABS = [
   { id: 'scan', label: 'tabScan', render: () => <ScanTab /> },
   { id: 'map', label: 'tabMap', render: () => <OutbreakMap /> },
-  { id: 'nation', label: 'tabNation', render: (t) => <Placeholder title={t('tabNation')} /> },
+  { id: 'nation', label: 'tabNation', render: () => <NationalDashboard /> },
   { id: 'arch', label: 'tabArch', render: (t) => <Placeholder title={t('tabArch')} /> },
 ]
 

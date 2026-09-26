@@ -149,7 +149,7 @@ def compute(crop, disease, horizon, scenario="live", now=None, forecasts=None):
 
 # ---------- caching ----------
 
-def _version():
+def cache_version():
     try:
         return cache.client.get(VERSION_KEY) or "0"
     except Exception:  # noqa: BLE001 – cache is optional for correctness
@@ -165,7 +165,7 @@ def invalidate():
 
 
 def _key(scenario, crop, disease, horizon):
-    return f"risk:{_version()}:{scenario}:{crop}:{disease}:{horizon}"
+    return f"risk:{cache_version()}:{scenario}:{crop}:{disease}:{horizon}"
 
 
 def get_risk(crop, disease, horizon, scenario="live", refresh=False):

@@ -30,6 +30,8 @@ risk:
 
 national:
   window_days: 14
+  min_scans: 20          # fewer usable scans in the window -> "insufficient data" instead of a level
+  trend_days: 14
   # tonnes_at_risk / production -> supply risk level
   supply_bands: {watch: 0.02, high: 0.05}   # TODO: verify source – placeholder thresholds
 

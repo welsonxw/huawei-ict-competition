@@ -11,7 +11,7 @@ Nothing in this list may be invented. Until filled, the app runs on clearly flag
 | Soil level factors | `config/crop_requirements.yaml` → `soil_level_factor` | DOA soil-test guidance | TODO (placeholder) |
 | Retail bag sizes | `config/thresholds.yaml` → `fertiliser.bag_sizes_kg` | Retailer survey | TODO verify |
 | Disease parameters not given in the brief | `config/disease_profiles.yaml` (`TODO` markers) | DOA / MARDI / literature | TODO |
-| Regional production (t) | added in Phase 5 | DOSM / DOA Statistik Tanaman | TODO |
+| Regional production (t) | `config/production.yaml` | DOA Statistik Tanaman Sayur-sayuran dan Tanaman Kontan 2023 | Filled (Phase 5) |
 | Damage coefficients | added in Phase 5 | Literature / DOA | TODO |
 | National supply-risk thresholds | `config/thresholds.yaml` → `national.supply_bands` | Project decision + source | TODO |
 
@@ -24,3 +24,12 @@ Nothing in this list may be invented. Until filled, the app runs on clearly flag
 | Whitefly vector proxy thresholds | `config/thresholds.yaml` `risk.vector_proxy` | DOA / MARDI entomology |
 | Hutton criteria for Malaysia | `config/disease_profiles.yaml` `tomato:late_blight` | Local recalibration (UK rule) |
 | TOM-CAST table verification | `config/tomcast_table.yaml` | Pitblado (1992) original |
+
+## National dashboard (Phase 5)
+
+| Value | File | Status / needed source |
+|---|---|---|
+| Regional production (chilli, tomato) | `config/production.yaml` | **Filled** from DOA Statistik Tanaman Sayur-sayuran dan Tanaman Kontan 2023, Jadual 2-1 |
+| Damage coefficients per disease | `config/damage_functions.yaml` | TODO – DOA/MARDI yield-loss studies (linear placeholder) |
+| Supply bands (Watch 2%, High 5%) | `config/thresholds.yaml` `national.supply_bands` | TODO – agree with FAMA/KPKM |
+| Minimum scans per state (20) | `config/thresholds.yaml` `national.min_scans` | Engineering default |

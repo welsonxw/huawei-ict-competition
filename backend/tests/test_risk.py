@@ -151,8 +151,12 @@ def test_demo_outbreak_grows_across_slider(app, client):
     from app.services.demo import clear_demo, seed_demo
     from app.services.profiles import seed_profiles
 
+    from app.models import Scan
+
     seed_profiles()
-    assert 250 <= seed_demo() <= 350
+    seed_demo()
+    assert Scan.query.filter_by(is_simulated=False).count() == 0
+    assert 250 <= Scan.query.filter_by(diagnosis="anthracnose", is_simulated=True).count() <= 350
     counts = []
     for h in (0, 3, 5):
         body = client.get(f"/api/risk?crop=chilli&disease=anthracnose&horizon={h}&scenario=demo").get_json()

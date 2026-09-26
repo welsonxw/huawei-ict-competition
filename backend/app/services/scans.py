@@ -7,8 +7,8 @@ from PIL import Image, UnidentifiedImageError
 from ..extensions import db
 from ..models import Plot, Scan
 from .action_plan import action_plan
-from .config_loader import regions, thresholds
-from .grid import cell_id, nearest_region
+from .config_loader import regions, state_boundaries, thresholds
+from .grid import cell_id, nearest_region, region_at
 from .predictor import get_predictor
 from .profiles import display_name, get_profile
 from .risk_engine import invalidate as invalidate_risk
@@ -27,7 +27,8 @@ class ScanError(ValueError):
 
 def locate(lat, lon):
     cfg = thresholds()
-    return cell_id(lat, lon, cfg["grid"]["cell_deg"]), nearest_region(lat, lon, regions())
+    region = region_at(lat, lon, state_boundaries()) or nearest_region(lat, lon, regions())
+    return cell_id(lat, lon, cfg["grid"]["cell_deg"]), region
 
 
 def create_plot(name, crop, lat, lon, area_m2=None, num_plants=None, is_simulated=False):

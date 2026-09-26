@@ -42,3 +42,13 @@ Decisions made where the build prompt left room for interpretation.
 - **Vector proxy (whitefly):** 50% share of dry days + 50% heat (mean daily max from 25 to 33 °C) over 7 days, halved if it rained on the target day. These thresholds are TODO and need DOA/MARDI entomology input.
 - **Weather** is Open-Meteo hourly data for the past 7 days plus 7 forecast days per ~5 km cell. It is fetched in batches, cached in Redis for 3 h, and refreshed every 3 h by APScheduler (`ENABLE_SCHEDULER=true`) or on demand with `flask refresh-risk`. Risk layers are cached in Redis and invalidated whenever a new scan is saved.
 - **Simulated scenario:** `scripts/seed_demo.py` (or `flask seed-demo [--clear]`) creates about 300 scans marked `is_simulated = true`, using fixed settings in `config/demo_scenario.yaml`. The demo layer uses fixed, made-up "rainy spell" weather, not Open-Meteo. Simulated scans never feed into the live layer, and the map shows "Simulated scenario – not real data" whenever the demo layer is on.
+
+## Phase 5 – National dashboard
+
+- **Production (`P_region`)** is DOA's 2023 annual production by state (`config/production.yaml`, taken from Jadual 2-1 of *Statistik Tanaman Sayur-sayuran dan Tanaman Kontan 2023*). "Cili" here means ordinary chilli; DOA reports cili padi separately. The expected harvest in the window is annual production × 14 / 365, which assumes harvest is spread evenly through the year.
+- **Incidence** is the share of usable scans for that crop in the state over the last 14 days that show the disease. Pending-review and stub scans are left out. **Severity** is the mean Grad-CAM leaf-area share of the diseased scans.
+- **Damage function `f(severity)`** is linear with slope 1 and marked as a placeholder (`config/damage_functions.yaml`) until DOA/MARDI yield-loss coefficients are available.
+- **Supply level:** Watch at ≥ 2% and High at ≥ 5% of expected harvest at risk. These are placeholders. A state with fewer than 20 usable scans shows "Not enough scans" instead of a level.
+- **State boundaries** come from geoBoundaries gbOpen MYS ADM1 (© OpenStreetMap contributors, ODbL 1.0), simplified. Scans are assigned to a state by point-in-polygon; if a point is outside every state, the nearest state centroid is used.
+- **Demo healthy background:** the simulated scenario also adds healthy scans in each state, so incidence is a share rather than 100%. These are simulated too.
+- The UI shows the note: "Scan data comes from app users, not a random survey, so early incidence may be over-estimated."

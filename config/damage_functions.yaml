@@ -1,0 +1,4 @@
+# Damage function f(severity): share of expected harvest lost at a given mean leaf severity (0-1).
+# TODO: DOA/MARDI yield-loss studies. Until then every disease uses the linear default below, marked placeholder.
+default: {type: linear, slope: 1.0, placeholder: true}
+diseases: {}      # e.g. "chilli:anthracnose": {type: linear, slope: <sourced value>, source: "..."}
