@@ -1,0 +1,21 @@
+# Alternative without Docker: run the Flask API with Gunicorn from a virtualenv.
+# Expects the repo in /opt/taniguard, a venv in /opt/taniguard/.venv and settings in /opt/taniguard/.env.
+# Serve frontend/dist with deploy/nginx/taniguard.conf.
+[Unit]
+Description=TaniGuard API (Gunicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=taniguard
+Group=taniguard
+WorkingDirectory=/opt/taniguard/backend
+EnvironmentFile=/opt/taniguard/.env
+Environment=PYTHONPATH=/opt/taniguard FLASK_APP=wsgi.py CONFIG_DIR=/opt/taniguard/config MODEL_DIR=/opt/taniguard/ml/weights LOCAL_STORAGE_DIR=/opt/taniguard/data/uploads
+ExecStartPre=/opt/taniguard/.venv/bin/flask db upgrade
+ExecStartPre=/opt/taniguard/.venv/bin/flask seed-base
+ExecStart=/opt/taniguard/.venv/bin/gunicorn -w 2 -b 127.0.0.1:5000 --timeout 120 wsgi:app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

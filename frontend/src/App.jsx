@@ -3,7 +3,7 @@ import { useI18n } from './i18n/LanguageContext.jsx'
 import LanguageToggle from './components/LanguageToggle.jsx'
 import HealthStatus from './components/HealthStatus.jsx'
 import LoginBox from './components/LoginBox.jsx'
-import Placeholder from './components/Placeholder.jsx'
+import ArchitectureTab from './components/ArchitectureTab.jsx'
 import ScanTab from './components/ScanTab.jsx'
 import OutbreakMap from './components/OutbreakMap.jsx'
 import NationalDashboard from './components/NationalDashboard.jsx'
@@ -12,7 +12,7 @@ const TABS = [
   { id: 'scan', label: 'tabScan', render: () => <ScanTab /> },
   { id: 'map', label: 'tabMap', render: () => <OutbreakMap /> },
   { id: 'nation', label: 'tabNation', render: () => <NationalDashboard /> },
-  { id: 'arch', label: 'tabArch', render: (t) => <Placeholder title={t('tabArch')} /> },
+  { id: 'arch', label: 'tabArch', render: () => <ArchitectureTab /> },
 ]
 
 export default function App() {

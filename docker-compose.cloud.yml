@@ -1,0 +1,32 @@
+# Huawei Cloud ECS: backend + frontend only. MySQL, Redis and file storage come from
+# RDS for MySQL, DCS for Redis and OBS (see docs/DEPLOY_HUAWEI_CLOUD.md).
+#   docker compose -f docker-compose.cloud.yml up -d --build
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL to the RDS for MySQL address in .env}
+      REDIS_URL: ${REDIS_URL:?set REDIS_URL to the DCS for Redis address in .env}
+      CONFIG_DIR: /srv/config
+      LOCAL_STORAGE_DIR: /srv/data/uploads
+      MODEL_DIR: /srv/ml/weights
+    volumes:
+      - appdata:/srv/data
+      - ./ml/weights:/srv/ml/weights
+    ports:
+      - "127.0.0.1:5000:5000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  appdata:

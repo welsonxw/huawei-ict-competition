@@ -18,3 +18,11 @@ This project reuses code from **AgriTech** by Om Roy (https://github.com/omroy07
 | `ml/labels.py` (`PLANTVILLAGE_LABELS`) | Class list from the same notebook |
 | `ml/weights/plant-disease-model.pth` (downloaded, not committed) | `Plant Disease Detection/plant-disease-model.pth` |
 | `ml/samples/*.JPG` | `Plant Disease Detection/test/` (PlantVillage images) |
+
+## Third-party data
+
+| Data | Source | Licence / terms |
+|---|---|---|
+| Malaysian state boundaries (`config/malaysia_states.geojson`) | geoBoundaries gbOpen MYS ADM1, © OpenStreetMap contributors | ODbL 1.0 |
+| Weather forecasts (fetched at runtime) | Open-Meteo | CC BY 4.0 |
+| Chilli and tomato production by state (`config/production.yaml`) | Jabatan Pertanian Malaysia (DOA), Statistik Tanaman Sayur-sayuran dan Tanaman Kontan 2023 | Cited as the official source |

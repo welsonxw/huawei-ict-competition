@@ -16,6 +16,7 @@ class Config:
     OBS_BUCKET = os.getenv("OBS_BUCKET", "")
     OBS_ACCESS_KEY = os.getenv("OBS_ACCESS_KEY", "")
     OBS_SECRET_KEY = os.getenv("OBS_SECRET_KEY", "")
+    OBS_REGION = os.getenv("OBS_REGION", "")
     PREDICTOR = os.getenv("PREDICTOR", "local")
     MODEL_DIR = Path(os.getenv("MODEL_DIR", ROOT_DIR / "ml" / "weights"))
     MODELARTS_ENDPOINT = os.getenv("MODELARTS_ENDPOINT", "")
