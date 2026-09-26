@@ -29,4 +29,9 @@ def create_app(config_object=Config):
     from .cli import register_cli
 
     register_cli(app)
+
+    if app.config["ENABLE_SCHEDULER"]:
+        from .scheduler import start_scheduler
+
+        start_scheduler(app)
     return app

@@ -11,6 +11,7 @@ from .config_loader import regions, thresholds
 from .grid import cell_id, nearest_region
 from .predictor import get_predictor
 from .profiles import display_name, get_profile
+from .risk_engine import invalidate as invalidate_risk
 from .storage import get_storage
 from .weather import get_forecast
 
@@ -77,6 +78,7 @@ def run_scan(image_bytes, crop, plot: Plot | None, lat=None, lon=None):
     )
     db.session.add(scan)
     db.session.commit()
+    invalidate_risk()
 
     plot_name = plot.name if plot else {"en": "this plot", "ms": "plot ini"}
     try:

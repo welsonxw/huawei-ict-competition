@@ -21,27 +21,37 @@ def _cache_key(cid):
     return f"weather:{cid}"
 
 
-def fetch_open_meteo(lat, lon, forecast_days=7, past_days=0):
+PAST_DAYS = 7  # risk models look back up to 7 days (TOM-CAST accumulation, vector dry spells)
+FORECAST_DAYS = 7
+BATCH_SIZE = 50
+
+
+def _series(h):
+    return {"time": h["time"], "temp": h["temperature_2m"], "rh": h["relative_humidity_2m"], "rain": h["precipitation"]}
+
+
+def fetch_open_meteo_many(coords, forecast_days=FORECAST_DAYS, past_days=PAST_DAYS):
+    """One Open-Meteo request for several (lat, lon) points; returns a list of series in the same order."""
     res = requests.get(
         OPEN_METEO_URL,
         params={
-            "latitude": round(lat, 4),
-            "longitude": round(lon, 4),
+            "latitude": ",".join(f"{lat:.4f}" for lat, _ in coords),
+            "longitude": ",".join(f"{lon:.4f}" for _, lon in coords),
             "hourly": HOURLY_VARS,
             "forecast_days": forecast_days,
             "past_days": past_days,
             "timezone": "Asia/Kuala_Lumpur",
         },
-        timeout=15,
+        timeout=30,
     )
     res.raise_for_status()
-    h = res.json()["hourly"]
-    return {
-        "time": h["time"],
-        "temp": h["temperature_2m"],
-        "rh": h["relative_humidity_2m"],
-        "rain": h["precipitation"],
-    }
+    body = res.json()
+    items = body if isinstance(body, list) else [body]
+    return [_series(item["hourly"]) for item in items]
+
+
+def fetch_open_meteo(lat, lon, forecast_days=FORECAST_DAYS, past_days=PAST_DAYS):
+    return fetch_open_meteo_many([(lat, lon)], forecast_days, past_days)[0]
 
 
 def get_forecast_for_cell(cid, refresh=False):
@@ -61,6 +71,31 @@ def get_forecast_for_cell(cid, refresh=False):
     data["cell"] = cid
     cache.client.set(key, json.dumps(data), ex=cfg["weather"]["cache_ttl_seconds"])
     return data
+
+
+def get_forecasts_for_cells(cids, refresh=False):
+    """{cell: series or None}. Cached cells come from Redis; the rest are fetched in batches."""
+    cfg = thresholds()
+    out, missing = {}, []
+    for cid in cids:
+        cached = None if refresh else cache.client.get(_cache_key(cid))
+        if cached:
+            out[cid] = json.loads(cached)
+        else:
+            missing.append(cid)
+    for i in range(0, len(missing), BATCH_SIZE):
+        chunk = missing[i:i + BATCH_SIZE]
+        try:
+            series = fetch_open_meteo_many([cell_center(c, cfg["grid"]["cell_deg"]) for c in chunk])
+        except (requests.RequestException, KeyError, ValueError, TypeError) as exc:
+            log.warning("weather batch fetch failed for %d cells: %s", len(chunk), exc)
+            out.update({c: None for c in chunk})
+            continue
+        for cid, data in zip(chunk, series):
+            data["cell"] = cid
+            cache.client.set(_cache_key(cid), json.dumps(data), ex=cfg["weather"]["cache_ttl_seconds"])
+            out[cid] = data
+    return out
 
 
 def get_forecast(lat, lon, refresh=False):
