@@ -46,6 +46,7 @@ test('till, plant, water, grow and harvest', () => {
   }
   const r = act(s, 'chilli')
   assert.equal(r.event, 'harvest')
+  assert.equal(r.crop, 'chilli')
   assert.ok(r.state.coins > 0 && r.state.stats.harvested === 1)
 })
 

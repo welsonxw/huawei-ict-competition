@@ -133,6 +133,7 @@ export function act(state, seedKind) {
         stats: { ...state.stats, harvested: state.stats.harvested + 1 },
       },
       event: 'harvest',
+      crop: crop.kind,
     }
   }
   if (tile.watered) return { state, event: 'alreadyWatered' }

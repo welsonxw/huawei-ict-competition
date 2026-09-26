@@ -60,7 +60,7 @@ export default function FarmGame() {
   const [seed, setSeed] = useState('chilli')
   const [outlook, setOutlook] = useState(null)
   const [offline, setOffline] = useState(false)
-  const [message, setMessage] = useState(() => t('gameWelcome'))
+  const [message, setMessage] = useState([{ key: 'gameWelcome' }])
   const [sick, setSick] = useState(null) // {x, y}
   const canvas = useRef(null)
   const gameRef = useRef(game)
@@ -108,17 +108,15 @@ export default function FarmGame() {
       const died = ev.filter((e) => e.type === 'died').length
       setMessage(
         [
-          t('gameMorning', { day: next.day }),
-          next.log[0].rainy && t('gameRained'),
-          infected && t('gameInfected', { n: infected }),
-          died && t('gameDied', { n: died }),
-        ]
-          .filter(Boolean)
-          .join(' '),
+          { key: 'gameMorning', vars: { day: next.day } },
+          next.log[0].rainy && { key: 'gameRained' },
+          infected && { key: 'gameInfected', vars: { n: infected } },
+          died && { key: 'gameDied', vars: { n: died } },
+        ].filter(Boolean),
       )
       return next
     })
-  }, [outlook, t])
+  }, [outlook])
 
   const doAct = useCallback(() => {
     const r = act(gameRef.current, seed)
@@ -126,16 +124,13 @@ export default function FarmGame() {
     if (r.event === 'sick') {
       const c = tileAt(r.state, r.tile.x, r.tile.y).crop
       setSick(r.tile)
-      setMessage(
-        t('gameScanned', {
-          name: disease(c.kind, c.disease)?.name[lang] || c.disease,
-        }),
-      )
+      setMessage([{ key: 'gameScanned', crop: c.kind, disease: c.disease }])
       return
     }
+    const crop = r.crop || seed
     setGame(r.state)
-    setMessage(t(`gameEv_${r.event}`, { crop: t(seed), coins: CROPS[seed].value }))
-  }, [seed, doSleep, disease, lang, t])
+    setMessage([{ key: `gameEv_${r.event}`, crop, vars: { coins: CROPS[crop].value } }])
+  }, [seed, doSleep])
 
   const doMove = useCallback((dir) => {
     setSick(null)
@@ -162,14 +157,14 @@ export default function FarmGame() {
   const applyTreatment = (adviceType) => {
     const r = treat(game, sick.x, sick.y, adviceType, outlook?.diseases || [])
     setGame(r.state)
-    setMessage(r.ok ? t('gameCured') : game.coins < TREAT_COST ? t('gameNoCoins') : t('gameWrong'))
+    setMessage([{ key: r.ok ? 'gameCured' : game.coins < TREAT_COST ? 'gameNoCoins' : 'gameWrong' }])
     if (r.ok) setSick(null)
   }
 
   const reset = () => {
     setGame(newGame())
     setSick(null)
-    setMessage(t('gameWelcome'))
+    setMessage([{ key: 'gameWelcome' }])
   }
 
   const h = String(horizonFor(game.day, outlook?.horizons))
@@ -239,7 +234,15 @@ export default function FarmGame() {
         </div>
 
         <p aria-live="polite" className="min-h-[1.5rem] rounded bg-stone-50 px-2 py-1 text-sm">
-          {message}
+          {message
+            .map((m) =>
+              t(m.key, {
+                ...m.vars,
+                crop: m.crop && t(m.crop),
+                name: m.disease && (disease(m.crop, m.disease)?.name[lang] || m.disease),
+              }),
+            )
+            .join(' ')}
         </p>
 
         <div className="flex flex-wrap items-center gap-4">
