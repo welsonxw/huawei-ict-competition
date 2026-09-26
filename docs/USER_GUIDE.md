@@ -38,3 +38,13 @@ When the **"Simulated scenario – not real data"** banner is shown, the outbrea
 - Create accounts: `flask create-user NAME --role farmer|expert` (inside the backend container: `docker compose exec backend flask create-user ...`).
 - Load or clear demo data: `flask seed-demo` / `flask seed-demo --clear`.
 - Deployment: see `docs/DEPLOY_HUAWEI_CLOUD.md`.
+
+## Farm game
+
+The **Farm game** tab is a Stardew-style farm for teaching the scan → action-plan loop.
+
+- Move with the arrow keys/WASD or the on-screen pad; press Space/E (or **Act**) to till, plant, water, harvest or scan the tile in front of you. Refill water at the pond. Sleep at the house door to end the day.
+- Each night, the chance a plant gets sick comes from `GET /api/game/outlook`, which reads the real risk engine bands (Low/Medium/High) for the chosen farm location. Game day 1 uses today's risk, day 4 the +3-day forecast and day 6 the +5-day forecast, then the week repeats. Rain in the real 48 h forecast waters the field.
+- Scanning a sick plant shows the real TaniGuard action plan for that disease and weather; the matching treatment cures it. Untreated plants die after 3 days and spread to neighbours.
+- With **Risk data: Simulated scenario** the page shows the "Simulated scenario – not real data" banner, like the outbreak map.
+- Growth times, coins and infection chances are game rules, not agronomic data. Progress is saved in the browser only; nothing is written to the database.
