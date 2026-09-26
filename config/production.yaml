@@ -1,0 +1,16 @@
+# Annual production by state (tonnes), 2023.
+# Source: Jabatan Pertanian Malaysia (DOA), "Statistik Tanaman Sayur-sayuran dan Tanaman Kontan 2023",
+# Jadual 2-1: Keluasan, Pengeluaran dan Nilai Pengeluaran Tanaman Sayuran Utama Mengikut Negeri, Malaysia, 2023
+# (columns "Cili (Chilli)" and "Tomato (Tomato)", Pengeluaran / Production (Mt)).
+# https://www.doa.gov.my/doa/resources/aktiviti_sumber/arkib/statistik_tanaman/2024/statistik_tanaman_sayur_tanaman_kontan_2023.pdf
+# "Cili" excludes "Cili Padi" (bird's-eye chilli), which DOA reports separately. "-" in the table is stored as 0.
+# Kuala Lumpur is not listed by DOA and is stored as 0. Sabah, Sarawak and Labuan are kept for the
+# national total, but the scan grid only covers Peninsular Malaysia.
+source: "DOA Statistik Tanaman Sayur-sayuran dan Tanaman Kontan 2023, Jadual 2-1"
+year: 2023
+tonnes:
+  chilli: {JHR: 8918.99, KDH: 1132.12, KTN: 9828.06, MLK: 129.98, NSN: 777.05, PHG: 4254.02, PRK: 5203.77,
+           PLS: 551.25, PNG: 711.10, SGR: 3500.00, TRG: 2128.86, KUL: 0, SBH: 761.90, SWK: 1670.50, LBN: 6.81}
+  tomato: {JHR: 23.20, KDH: 0, KTN: 70433.63, MLK: 0, NSN: 0, PHG: 110227.31, PRK: 6539.70,
+           PLS: 0, PNG: 0, SGR: 0, TRG: 0, KUL: 0, SBH: 1431.50, SWK: 186.90, LBN: 0}
+national_total: {chilli: 39574.40, tomato: 188842.24}   # Malaysia totals printed in the same table

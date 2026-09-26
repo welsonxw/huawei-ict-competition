@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from pathlib import Path
 
@@ -44,3 +45,22 @@ def tomcast_table(config_dir=None):
 
 def demo_scenario(config_dir=None):
     return load_config("demo_scenario.yaml", config_dir)
+
+
+def production(config_dir=None):
+    return load_config("production.yaml", config_dir)
+
+
+def damage_functions(config_dir=None):
+    return load_config("damage_functions.yaml", config_dir)
+
+
+@lru_cache(maxsize=4)
+def _load_json(path: str):
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def state_boundaries(config_dir=None):
+    base = Path(config_dir or current_app.config["CONFIG_DIR"])
+    return _load_json(str(base / "malaysia_states.geojson"))

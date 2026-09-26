@@ -6,7 +6,8 @@ from datetime import timedelta
 
 from ..extensions import db
 from ..models import Plot, Scan
-from .config_loader import demo_scenario
+from .config_loader import demo_scenario, state_boundaries
+from .grid import region_at
 from .risk_engine import invalidate
 from .scans import locate
 from .weather import now_local
@@ -20,13 +21,26 @@ def _point(rng, lat, lon, radius_km):
     return lat + r * math.cos(a) / KM_PER_DEG, lon + r * math.sin(a) / (KM_PER_DEG * math.cos(math.radians(lat)))
 
 
+def _point_in_state(rng, code):
+    feature = next(f for f in state_boundaries()["features"] if f["properties"]["code"] == code)
+    g = feature["geometry"]
+    rings = [p[0] for p in (g["coordinates"] if g["type"] == "MultiPolygon" else [g["coordinates"]])]
+    lons = [c[0] for r in rings for c in r]
+    lats = [c[1] for r in rings for c in r]
+    for _ in range(1000):
+        lat, lon = rng.uniform(min(lats), max(lats)), rng.uniform(min(lons), max(lons))
+        if region_at(lat, lon, {"features": [feature]}):
+            return lat, lon
+    raise RuntimeError(f"could not sample a point in {code}")
+
+
 def _scan(rng, crop, disease, lat, lon, when):
     conf = round(rng.uniform(0.82, 0.98), 3)
     cell, region = locate(lat, lon)
     return Scan(
         crop=crop, diagnosis=disease, confidence=conf,
         top3=[{"label": disease, "confidence": conf}, {"label": "healthy", "confidence": round((1 - conf) * 0.7, 3)}],
-        severity=round(rng.uniform(0.05, 0.6), 3), lat=round(lat, 5), lon=round(lon, 5), grid_cell=cell, region=region,
+        severity=round(rng.uniform(0.0, 0.05) if disease == "healthy" else rng.uniform(0.05, 0.6), 3), lat=round(lat, 5), lon=round(lon, 5), grid_cell=cell, region=region,
         model_version="simulated", is_stub=False, review_status="none", is_simulated=True, created_at=when,
     )
 
@@ -63,6 +77,12 @@ def seed_demo(now=None):
             when = now - timedelta(days=rng.uniform(0, days - 1))
             lat, lon = _point(rng, c["lat"], c["lon"], c["radius_km"])
             rows.append(_scan(rng, "tomato", "early_blight", lat, lon, when))
+
+    for crop, counts in cfg.get("healthy_background", {}).items():
+        for code, n in counts.items():
+            for _ in range(n):
+                lat, lon = _point_in_state(rng, code)
+                rows.append(_scan(rng, crop, "healthy", lat, lon, now - timedelta(days=rng.uniform(0, days - 1))))
 
     db.session.add_all(rows)
     db.session.commit()

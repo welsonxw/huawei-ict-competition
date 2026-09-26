@@ -11,9 +11,14 @@ chilli_anthracnose:
   scans_added_per_day: 0.9
 tomato_early_blight:
   clusters:
-    - {lat: 4.47, lon: 101.38, radius_km: 12, count: 20}   # Cameron Highlands area
+    - {lat: 4.50, lon: 101.42, radius_km: 8, count: 20}    # Cameron Highlands area (Pahang)
     - {lat: 1.60, lon: 103.62, radius_km: 20, count: 10}   # southern Johor
 # Simulated "rainy spell": wetness factor per day relative to today (0 = dry, 1 = very wet).
 weather:
   wet_start: 0.15          # wetness 3+ days before today
   wet_per_day: 0.08       # added each day from 3 days ago onward
+# Healthy background scans per state over the same 21 days, so incidence is a share rather than 100%.
+# Sampled uniformly inside each state's boundary. Simulated, like everything in this file.
+healthy_background:
+  chilli: {JHR: 300, KTN: 60, PHG: 40, PRK: 40, SGR: 30, TRG: 25, KDH: 20, NSN: 15, PNG: 10, PLS: 10, MLK: 10}
+  tomato: {PHG: 150, KTN: 80, PRK: 30, JHR: 25}
