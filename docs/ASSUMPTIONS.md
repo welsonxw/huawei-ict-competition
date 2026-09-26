@@ -22,7 +22,7 @@ Decisions made where the build prompt left room for interpretation.
 ## Phase 3 – Smart fertiliser
 
 - **All crop requirements are placeholders.** `config/crop_requirements.yaml` holds round numbers (kg/ha, oxide form) marked `placeholder: true` so the optimiser runs. The API returns `placeholder_requirements: true` and the UI shows a "do not use these amounts in the field yet" banner until the DOA Pakej Teknologi Cili / Tomato values are entered.
-- **Prices are TODO (`null`).** While any chosen product has no price, the optimiser treats all products as equal cost (so it minimises total kg), cost is shown as "not configured", and `placeholder_prices: true`.
+- **Prices are TODO (`null`).** While any active product has no price, the optimiser treats all products as equal cost (so it minimises total kg), cost is shown as "not configured", and `placeholder_prices: true`.
 - **Soil level factors** (low ×1.25, medium ×1.0, high ×0.75) are placeholders pending DOA soil-test interpretation. Advanced mode accepts Low/Medium/High only; numeric soil tests need DOA thresholds (TODO).
 - **Tomato pH range is TODO.** If a pH is entered for tomato, the app says the range is not configured. Chilli uses 5.5–6.5 from the brief. pH never changes the product choice.
 - **Bag sizes** 1/5/25/50 kg are a configurable guess (`thresholds.yaml`, TODO verify).
