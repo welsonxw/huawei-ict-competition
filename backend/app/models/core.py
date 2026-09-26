@@ -108,3 +108,40 @@ class DiseaseProfile(db.Model):
             "advice_type": self.advice_type, "spread_radius_km": self.spread_radius_km,
             "report_decay_days": self.report_decay_days, "source_refs": self.source_refs,
         }
+
+
+class FertiliserProduct(db.Model):
+    __tablename__ = "fertiliser_products"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), nullable=False, unique=True)
+    n = db.Column(db.Float, nullable=False)
+    p2o5 = db.Column(db.Float, nullable=False)
+    k2o = db.Column(db.Float, nullable=False)
+    mgo = db.Column(db.Float, nullable=False, default=0)
+    price_rm_per_kg = db.Column(db.Float)
+    active = db.Column(db.Boolean, nullable=False, default=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id, "name": self.name, "n": self.n, "p2o5": self.p2o5, "k2o": self.k2o, "mgo": self.mgo,
+            "price_rm_per_kg": self.price_rm_per_kg, "active": self.active,
+        }
+
+
+class CropRequirement(db.Model):
+    __tablename__ = "crop_requirements"
+    id = db.Column(db.Integer, primary_key=True)
+    crop = db.Column(db.String(20), nullable=False)
+    stage = db.Column(db.String(20), nullable=False)
+    n = db.Column(db.Float, nullable=False)
+    p2o5 = db.Column(db.Float, nullable=False)
+    k2o = db.Column(db.Float, nullable=False)
+    is_placeholder = db.Column(db.Boolean, nullable=False, default=True)
+    source = db.Column(db.String(255))
+    __table_args__ = (db.UniqueConstraint("crop", "stage", name="uq_requirement_crop_stage"),)
+
+    def to_dict(self):
+        return {
+            "crop": self.crop, "stage": self.stage, "n": self.n, "p2o5": self.p2o5, "k2o": self.k2o,
+            "is_placeholder": self.is_placeholder, "source": self.source,
+        }

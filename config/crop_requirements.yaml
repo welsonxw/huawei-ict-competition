@@ -1,0 +1,31 @@
+# Crop x growth stage -> nutrient requirement in kg/ha, OXIDE form (N, P2O5, K2O).
+# TODO: from DOA Pakej Teknologi Cili / Pakej Teknologi Tomato.
+# Every number marked `placeholder: true` is a made-up round number so the app runs end to end.
+# It is NOT agronomic advice. Replace the numbers, set placeholder: false and fill `source`.
+# If a source gives elemental P / K, set `form: elemental` on that crop and the loader converts
+# (P2O5 = P / 0.436, K2O = K / 0.83).
+crops:
+  chilli:
+    source: "TODO: DOA Pakej Teknologi Cili"
+    placeholder: true
+    form: oxide
+    ph: {min: 5.5, max: 6.5, source: "DOA (range given in project brief)"}
+    stages:
+      seedling:   {n: 30, p2o5: 30, k2o: 30}
+      vegetative: {n: 60, p2o5: 30, k2o: 30}
+      flowering:  {n: 40, p2o5: 40, k2o: 60}
+      fruiting:   {n: 30, p2o5: 30, k2o: 60}
+  tomato:
+    source: "TODO: DOA Pakej Teknologi Tomato"
+    placeholder: true
+    form: oxide
+    ph: {min: null, max: null, source: "TODO: DOA Pakej Teknologi Tomato"}
+    stages:
+      seedling:   {n: 30, p2o5: 30, k2o: 30}
+      vegetative: {n: 60, p2o5: 30, k2o: 30}
+      flowering:  {n: 40, p2o5: 40, k2o: 60}
+      fruiting:   {n: 30, p2o5: 30, k2o: 60}
+
+# Multiplier applied to a nutrient requirement from the farmer's soil level (advanced mode).
+# TODO: placeholder factors – replace with DOA soil-test interpretation.
+soil_level_factor: {low: 1.25, medium: 1.0, high: 0.75}
