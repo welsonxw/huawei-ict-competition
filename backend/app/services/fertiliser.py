@@ -13,6 +13,7 @@ from .nutrients import to_oxide
 NUTRIENTS = ("n", "p2o5", "k2o")
 STAGES = ("seedling", "vegetative", "flowering", "fruiting")
 LEVELS = ("low", "medium", "high")
+MAX_AREA_M2 = 1_000_000  # 100 ha; the planner is for individual plots
 
 NUTRIENT_NAMES = {
     "en": {"n": "nitrogen", "p2o5": "phosphorus", "k2o": "potassium"},
@@ -91,8 +92,8 @@ def seed_fertiliser():
 
 
 def load_products():
-    rows = FertiliserProduct.query.filter_by(active=True).order_by(FertiliserProduct.id).all()
-    if rows:
+    if FertiliserProduct.query.count():
+        rows = FertiliserProduct.query.filter_by(active=True).order_by(FertiliserProduct.id).all()
         return [r.to_dict() for r in rows]
     return [dict(p) for p in fertiliser_products()]
 
@@ -112,21 +113,26 @@ def stage_requirements(crop):
 
 # ---------- optimiser ----------
 
-def _price(p):
-    return p["price_rm_per_kg"] if p.get("price_rm_per_kg") is not None else 1.0
+def prices_known(products):
+    return bool(products) and all(p.get("price_rm_per_kg") is not None for p in products)
+
+
+def _price(p, use_prices):
+    """Real price when every product is priced; otherwise uniform cost, so the LP minimises total kg."""
+    return p["price_rm_per_kg"] if use_prices else 1.0
 
 
 def _matrix(combo, nutrients):
     return np.array([[p[n] / 100.0 for p in combo] for n in nutrients])
 
 
-def _solve_combo(combo, req, tol):
+def _solve_combo(combo, req, tol, use_prices):
     """Cheapest amounts (kg/ha) for this product combo with each required nutrient within ±tol. None if infeasible."""
     nutrients = [n for n in NUTRIENTS if req[n] > 0]
     a = _matrix(combo, nutrients)
     r = np.array([req[n] for n in nutrients])
     res = linprog(
-        c=[_price(p) for p in combo],
+        c=[_price(p, use_prices) for p in combo],
         A_ub=np.vstack([a, -a]),
         b_ub=np.concatenate([(1 + tol) * r, -(1 - tol) * r]),
         bounds=[(0, None)] * len(combo),
@@ -161,19 +167,22 @@ def optimise(products, req, tol=0.10, max_products=2):
     """Return {"feasible", "items": [(product, kg_per_ha)], "cost_per_ha", "max_deviation"}."""
     if not any(req[n] > 0 for n in NUTRIENTS):
         raise FertiliserError("requirement is zero for every nutrient")
+    if not products:
+        raise FertiliserError("no active fertiliser products")
+    use_prices = prices_known(products)
     best = None
     for k in range(1, max_products + 1):
         for combo in combinations(products, k):
-            x = _solve_combo(combo, req, tol)
+            x = _solve_combo(combo, req, tol, use_prices)
             if x is None:
                 continue
             items = _pack(combo, x)
-            cost = sum(_price(p) * kg for p, kg in items)
+            cost = sum(_price(p, use_prices) * kg for p, kg in items)
             key = (round(cost, 6), len(items), round(sum(kg for _, kg in items), 6))
             if best is None or key < best[0]:
                 best = (key, items, cost)
     if best:
-        return {"feasible": True, "items": best[1], "cost_per_ha": best[2], "max_deviation": None}
+        return {"feasible": True, "items": best[1], "cost_per_ha": best[2], "max_deviation": None, "priced": use_prices}
 
     closest = None
     for k in range(1, max_products + 1):
@@ -182,7 +191,10 @@ def optimise(products, req, tol=0.10, max_products=2):
             if x is not None and (closest is None or t < closest[0] - 1e-9):
                 closest = (t, _pack(combo, x))
     items = closest[1] if closest else []
-    return {"feasible": False, "items": items, "cost_per_ha": sum(_price(p) * kg for p, kg in items), "max_deviation": closest[0] if closest else None}
+    return {
+        "feasible": False, "items": items, "cost_per_ha": sum(_price(p, use_prices) * kg for p, kg in items),
+        "max_deviation": closest[0] if closest else None, "priced": use_prices,
+    }
 
 
 # ---------- recommendation ----------
@@ -233,6 +245,8 @@ def recommend(crop, stage, area_m2, num_plants=None, ph=None, soil=None, previou
         raise FertiliserError(f"stage must be one of {', '.join(STAGES)}")
     if not area_m2 or area_m2 <= 0:
         raise FertiliserError("plot size (m²) is required")
+    if area_m2 > MAX_AREA_M2:
+        raise FertiliserError(f"plot size must be at most {MAX_AREA_M2:,} m² (100 ha)")
     soil = {k: v for k, v in (soil or {}).items() if v}
     for k, v in soil.items():
         if k not in NUTRIENTS or v not in LEVELS:
@@ -255,7 +269,6 @@ def recommend(crop, stage, area_m2, num_plants=None, ph=None, soil=None, previou
             "bag": bags(kg_plot, cfg["bag_sizes_kg"]),
         })
     got = supplied(result["items"])
-    prices_known = all(p.get("price_rm_per_kg") is not None for p, _ in result["items"])
     deviation = {n: (got[n] - req[n]) / req[n] if req[n] > 0 else None for n in NUTRIENTS}
 
     emphasis = _stage_emphasis(crop, stage)
@@ -295,10 +308,10 @@ def recommend(crop, stage, area_m2, num_plants=None, ph=None, soil=None, previou
         "required_kg_per_ha": {n: round(v, 1) for n, v in req.items()},
         "supplied_kg_per_ha": {n: round(v, 1) for n, v in got.items()},
         "deviation": {n: (round(v, 3) if v is not None else None) for n, v in deviation.items()},
-        "cost_rm_plot": round(result["cost_per_ha"] * ha, 2) if prices_known else None,
+        "cost_rm_plot": round(result["cost_per_ha"] * ha, 2) if result["priced"] else None,
         "ph": ph_advice(crop, ph, "en")["status"] if ph is not None else None,
         "placeholder_requirements": bool(base.get("is_placeholder")),
-        "placeholder_prices": not prices_known,
+        "placeholder_prices": not result["priced"],
         "requirement_source": base.get("source"),
         "text": text,
     }

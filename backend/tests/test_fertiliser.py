@@ -102,3 +102,37 @@ def test_recommend_route_with_plot_and_deficiency_hint(app, client):
     assert any("soil test" in n for n in body["text"]["en"]["notes"])
     assert client.post("/api/fertiliser/recommend", json={"crop": "chilli", "stage": "bogus", "area_m2": 1}).status_code == 400
     assert len(client.get("/api/fertiliser/products").get_json()) == 7
+
+
+def test_mixed_prices_fall_back_to_uniform_cost():
+    mixed = [dict(p) for p in PRODUCTS]
+    mixed[0]["price_rm_per_kg"] = None
+    out = optimise(mixed, {"n": 46, "p2o5": 0, "k2o": 0})
+    assert out["priced"] is False
+    assert optimise(PRODUCTS, {"n": 46, "p2o5": 0, "k2o": 0})["priced"] is True
+
+
+def test_inactive_products_stay_disabled(app):
+    from app.extensions import db
+    from app.models import FertiliserProduct
+    from app.services.fertiliser import load_products
+
+    seed_fertiliser()
+    FertiliserProduct.query.update({"active": False})
+    db.session.commit()
+    assert load_products() == []
+    with pytest.raises(ValueError):
+        recommend("chilli", "fruiting", area_m2=400)
+
+
+@pytest.mark.parametrize("body", [
+    [1, 2],
+    {"crop": "chilli", "stage": "fruiting", "area_m2": 400, "soil": "low"},
+    {"crop": "chilli", "stage": "fruiting", "area_m2": 400, "num_plants": -5},
+    {"crop": "chilli", "stage": "fruiting", "area_m2": 400, "num_plants": 2.5},
+    {"crop": "chilli", "stage": "fruiting", "area_m2": 1e300},
+    {"plot_id": "abc", "stage": "fruiting"},
+])
+def test_recommend_route_rejects_bad_input(app, client, body):
+    seed_fertiliser()
+    assert client.post("/api/fertiliser/recommend", json=body).status_code == 400
