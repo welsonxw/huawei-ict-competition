@@ -29,3 +29,4 @@ national:
 fertiliser:
   tolerance: 0.10               # each nutrient within ±10% of requirement
   max_products: 2
+  bag_sizes_kg: [1, 5, 25, 50]   # TODO: verify retail pack sizes

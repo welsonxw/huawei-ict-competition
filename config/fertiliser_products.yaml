@@ -1,0 +1,13 @@
+# Fertiliser products commonly sold in Malaysia. Nutrient values are LABEL percentages in OXIDE form
+# (N, P2O5, K2O, MgO) – not elemental P or K.
+# price_rm_per_kg: TODO – fill in from a current DOA / FAMA / retailer price survey (with date and source).
+# While a price is null the optimiser treats every product as equal cost (minimises total kg) and the UI
+# says prices are not configured.
+products:
+  - {name: "Urea",           n: 46, p2o5: 0,  k2o: 0,  mgo: 0, price_rm_per_kg: null}
+  - {name: "NPK 15:15:15",   n: 15, p2o5: 15, k2o: 15, mgo: 0, price_rm_per_kg: null}
+  - {name: "NPK 12:12:17:2", n: 12, p2o5: 12, k2o: 17, mgo: 2, price_rm_per_kg: null}
+  - {name: "NPK 13:13:21",   n: 13, p2o5: 13, k2o: 21, mgo: 0, price_rm_per_kg: null}
+  - {name: "NPK 15:5:20",    n: 15, p2o5: 5,  k2o: 20, mgo: 0, price_rm_per_kg: null}
+  - {name: "DAP",            n: 18, p2o5: 46, k2o: 0,  mgo: 0, price_rm_per_kg: null}
+  - {name: "MOP",            n: 0,  p2o5: 0,  k2o: 60, mgo: 0, price_rm_per_kg: null}

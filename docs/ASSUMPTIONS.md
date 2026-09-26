@@ -18,3 +18,15 @@ Decisions made where the build prompt left room for interpretation.
 - **Grad-CAM severity** = share of the leaf image whose normalised activation is ≥ `scan.severity_threshold` (0.5). It is a rough indicator, not a lab-measured affected area.
 - **Example plots** (Plot A/B/C near Kluang, Johor) are created by `flask seed-base` so the Scan tab works out of the box. They are ordinary (non-simulated) demo plots with no scans.
 - **Sample images** in `ml/samples/` come from the AgriTech repository test set (PlantVillage images) and are used for tests and demos.
+
+## Phase 3 – Smart fertiliser
+
+- **All crop requirements are placeholders.** `config/crop_requirements.yaml` holds round numbers (kg/ha, oxide form) marked `placeholder: true` so the optimiser runs. The API returns `placeholder_requirements: true` and the UI shows a "do not use these amounts in the field yet" banner until the DOA Pakej Teknologi Cili / Tomato values are entered.
+- **Prices are TODO (`null`).** While any chosen product has no price, the optimiser treats all products as equal cost (so it minimises total kg), cost is shown as "not configured", and `placeholder_prices: true`.
+- **Soil level factors** (low ×1.25, medium ×1.0, high ×0.75) are placeholders pending DOA soil-test interpretation. Advanced mode accepts Low/Medium/High only; numeric soil tests need DOA thresholds (TODO).
+- **Tomato pH range is TODO.** If a pH is entered for tomato, the app says the range is not configured. Chilli uses 5.5–6.5 from the brief. pH never changes the product choice.
+- **Bag sizes** 1/5/25/50 kg are a configurable guess (`thresholds.yaml`, TODO verify).
+- **"Why" text** comes from the data: soil levels the farmer marked Low, plus the nutrient this stage needs noticeably more of (>15% above the crop's average across stages) in the requirement table.
+- **Nutrients with a zero requirement are unconstrained.** MgO is shown on labels but not optimised, because the brief's requirement table has only N, P₂O₅ and K₂O.
+- **Editing products and requirements** is done in the DB tables, which are seeded from YAML and never overwritten. An edit UI protected by the expert role comes with login in Phase 6.
+- **Previous fertiliser** is free text that is repeated back as a caution. It does not change the amounts (no DOA carry-over coefficients yet).

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiGet, apiPost } from '../lib/api.js'
 import { useI18n } from '../i18n/LanguageContext.jsx'
+import FertiliserPlanner from './FertiliserPlanner.jsx'
 
 const pct = (x) => `${Math.round(x * 100)}%`
 
@@ -169,6 +170,8 @@ export default function ScanTab() {
           </div>
         </section>
       )}
+
+      <FertiliserPlanner key={plot?.id} plot={plot} />
 
       <ReviewQueue refreshKey={scan?.id} />
     </div>
