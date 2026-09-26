@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useI18n } from './i18n/LanguageContext.jsx'
 import LanguageToggle from './components/LanguageToggle.jsx'
 import HealthStatus from './components/HealthStatus.jsx'
+import LoginBox from './components/LoginBox.jsx'
 import Placeholder from './components/Placeholder.jsx'
 import ScanTab from './components/ScanTab.jsx'
 import OutbreakMap from './components/OutbreakMap.jsx'
@@ -26,10 +27,13 @@ export default function App() {
           <h1 className="text-2xl font-extrabold text-leaf">{t('appName')}</h1>
           <p className="max-w-xl text-stone-600">{t('tagline')}</p>
         </div>
-        <LanguageToggle />
+        <div className="flex flex-wrap items-center gap-3">
+          <LoginBox />
+          <LanguageToggle />
+        </div>
       </header>
 
-      <nav role="tablist" aria-label="Demo sections" className="-mx-4 mb-4 flex gap-1 overflow-x-auto border-b border-stone-200 px-4">
+      <nav role="tablist" aria-label={t('tabsLabel')} className="-mx-4 mb-4 flex gap-1 overflow-x-auto border-b border-stone-200 px-4">
         {TABS.map((x) => (
           <button
             key={x.id}

@@ -4,6 +4,7 @@ from flask import Blueprint, Response, abort, jsonify, request
 
 from ..extensions import db
 from ..models import Plot, Scan
+from ..services.auth import login_required
 from ..services.scans import CROPS, ScanError, create_plot, run_scan
 from ..services.storage import get_storage
 
@@ -11,6 +12,7 @@ bp = Blueprint("scans", __name__)
 
 
 @bp.get("/plots")
+@login_required()
 def list_plots():
     q = Plot.query
     if request.args.get("include_simulated") != "true":
@@ -19,6 +21,7 @@ def list_plots():
 
 
 @bp.post("/plots")
+@login_required()
 def add_plot():
     data = request.get_json(silent=True) or {}
     try:
@@ -36,6 +39,7 @@ def add_plot():
 
 
 @bp.post("/scans")
+@login_required()
 def create_scan():
     file = request.files.get("image")
     if not file:
@@ -60,6 +64,7 @@ def create_scan():
 
 
 @bp.get("/scans")
+@login_required()
 def list_scans():
     q = Scan.query
     if request.args.get("plot_id"):
@@ -75,16 +80,12 @@ def _file(scan_id, attr, mimetype):
 
 
 @bp.get("/scans/<int:scan_id>/image")
+@login_required()
 def scan_image(scan_id):
     return _file(scan_id, "image_path", "image/jpeg")
 
 
 @bp.get("/scans/<int:scan_id>/heatmap")
+@login_required()
 def scan_heatmap(scan_id):
     return _file(scan_id, "heatmap_path", "image/png")
-
-
-@bp.get("/review/queue")
-def review_queue():
-    rows = Scan.query.filter_by(review_status="pending").order_by(Scan.created_at.desc()).limit(100).all()
-    return jsonify([s.to_dict() for s in rows])

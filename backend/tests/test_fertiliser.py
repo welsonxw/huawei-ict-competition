@@ -3,6 +3,11 @@ import pytest
 from app.services import nutrients
 from app.services.fertiliser import bags, optimise, recommend, seed_fertiliser, supplied
 
+
+@pytest.fixture(autouse=True)
+def _logged_in(expert):
+    """Scan, plot and plan endpoints need a login since Phase 6."""
+
 PRODUCTS = [
     {"name": "Urea", "n": 46, "p2o5": 0, "k2o": 0, "price_rm_per_kg": 2.0},
     {"name": "NPK 15:15:15", "n": 15, "p2o5": 15, "k2o": 15, "price_rm_per_kg": 3.0},

@@ -81,25 +81,35 @@ def run_scan(image_bytes, crop, plot: Plot | None, lat=None, lon=None):
     db.session.commit()
     invalidate_risk()
 
-    plot_name = plot.name if plot else {"en": "this plot", "ms": "plot ini"}
+    return scan, scan_payload(scan, low_conf, result.get("stub_reason"))
+
+
+def scan_payload(scan: Scan, low_conf, stub_reason=None):
+    return {
+        "scan": scan.to_dict(),
+        "low_confidence": low_conf,
+        "stub_reason": stub_reason,
+        "display_name": {lang: display_name(scan.crop, scan.effective_label, lang) for lang in ("en", "ms")},
+        "top3_names": [
+            {**t, "name": {lang: display_name(scan.crop, t["label"], lang) for lang in ("en", "ms")}} for t in scan.top3
+        ],
+        "action_plan": plan_for(scan, low_conf),
+    }
+
+
+def plan_for(scan: Scan, low_conf):
+    plot_name = scan.plot.name if scan.plot else {"en": "this plot", "ms": "plot ini"}
     try:
-        forecast = get_forecast(lat, lon)
+        forecast = get_forecast(scan.lat, scan.lon)
     except Exception:  # noqa: BLE001 – the scan is saved; a plan without weather is still useful
         log.exception("forecast unavailable for scan %s", scan.id)
         forecast = None
+    label = scan.effective_label
     plan = {}
     for lang in ("en", "ms"):
         name = plot_name if isinstance(plot_name, str) else plot_name[lang]
-        p = action_plan(result["label"], crop, get_profile(crop, result["label"]), name, forecast, cfg["weather"], low_confidence=low_conf)
+        p = action_plan(label, scan.crop, get_profile(scan.crop, label), name, forecast, thresholds()["weather"],
+                        low_confidence=low_conf)
         plan[lang] = p[lang]
         plan["weather"] = p["weather"]
-    return scan, {
-        "scan": scan.to_dict(),
-        "low_confidence": low_conf,
-        "stub_reason": result.get("stub_reason"),
-        "display_name": {lang: display_name(crop, result["label"], lang) for lang in ("en", "ms")},
-        "top3_names": [
-            {**t, "name": {lang: display_name(crop, t["label"], lang) for lang in ("en", "ms")}} for t in result["top3"]
-        ],
-        "action_plan": plan,
-    }
+    return plan

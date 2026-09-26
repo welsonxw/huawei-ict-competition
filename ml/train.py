@@ -12,7 +12,8 @@ Usage:
 
 Writes the checkpoint ({state_dict, labels, version}) and appends accuracy to
 ml/weights/metrics.json, which the "Model v1 -> v2" panel reads. Add --extra
-data/exports/training-set to include expert-confirmed scans exported by the app.
+data/exports/training-set/<crop> to include expert-confirmed scans exported by the app
+(scripts/export_training_set.py or GET /api/export/training-set).
 """
 import argparse
 import json

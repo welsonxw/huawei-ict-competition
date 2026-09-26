@@ -52,3 +52,12 @@ Decisions made where the build prompt left room for interpretation.
 - **State boundaries** come from geoBoundaries gbOpen MYS ADM1 (© OpenStreetMap contributors, ODbL 1.0), simplified. Scans are assigned to a state by point-in-polygon; if a point is outside every state, the nearest state centroid is used.
 - **Demo healthy background:** the simulated scenario also adds healthy scans in each state, so incidence is a share rather than 100%. These are simulated too.
 - The UI shows the note: "Scan data comes from app users, not a random survey, so early incidence may be over-estimated."
+
+## Phase 6 – Review loop, assistant, login
+
+- **Login** uses a signed session cookie (HttpOnly, SameSite=Lax), so photo URLs work in `<img>` tags. There are two roles. **Farmers** can use plots, scans, leaf photos, heatmaps, the fertiliser planner and the assistant. **Experts** can do all of that, and also use the review queue, confirm or correct labels, and export the training set. The outbreak map, national dashboard, disease list and model metrics stay public because they only show aggregated data. Report dots on the public map are rounded to 0.01° (about 1 km), so they don't reveal exact farm locations.
+- Create accounts with `flask create-user NAME --role expert`. Alternatively, set `DEMO_FARMER_PASSWORD` / `DEMO_EXPERT_PASSWORD` and run `flask seed-base`. Passwords must be at least 8 characters and are hashed with Werkzeug.
+- **Review:** if the expert picks the model's label, the scan is marked `confirmed`; if they pick a different label, it is marked `corrected`. Either way a row is written to `confirmed_labels`. The confirmed label then replaces the model label in the risk map and national dashboard.
+- **Export:** `GET /api/export/training-set?crop=` (or `scripts/export_training_set.py`) produces `<crop>/<label>/scan_<id>.jpg` plus `manifest.csv`. Simulated scans are never exported.
+- **Model v1 → v2 panel:** reads `ml/weights/metrics.json`, which `ml/train.py` writes. The bundled tomato model was not trained here, so the panel stays empty until a training run is recorded.
+- **Assistant:** works with any OpenAI-compatible chat-completions endpoint (`LLM_ENDPOINT`, `LLM_API_KEY`, `LLM_MODEL`); Huawei Cloud Pangu is the intended provider. If no key is set, or the call fails, it answers from rule-based templates in BM or English. Those templates are built from the same diagnosis and action plan, so they never add doses.

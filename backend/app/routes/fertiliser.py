@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from ..extensions import db
 from ..models import Plot, Scan
+from ..services.auth import login_required
 from ..services.fertiliser import STAGES, FertiliserError, load_products, recommend, stage_requirements
 
 bp = Blueprint("fertiliser", __name__)
@@ -35,6 +36,7 @@ def _num(value, name):
 
 
 @bp.post("/fertiliser/recommend")
+@login_required()
 def recommend_route():
     data = request.get_json(silent=True) or {}
     if not isinstance(data, dict):

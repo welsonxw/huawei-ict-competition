@@ -8,6 +8,11 @@ from PIL import Image
 from app.services import predictor as predictor_mod
 from app.services.scans import create_plot
 
+
+@pytest.fixture(autouse=True)
+def _logged_in(expert):
+    """Scan, plot and plan endpoints need a login since Phase 6."""
+
 ROOT = Path(__file__).resolve().parents[2]
 HAS_WEIGHTS = (ROOT / "ml" / "weights" / predictor_mod.TOMATO_WEIGHTS).exists()
 

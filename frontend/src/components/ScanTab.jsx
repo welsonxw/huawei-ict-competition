@@ -1,39 +1,18 @@
 import { useEffect, useState } from 'react'
 import { apiGet, apiPost } from '../lib/api.js'
 import { useI18n } from '../i18n/LanguageContext.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
+import { errorText } from '../lib/errors.js'
+import AssistantPanel from './AssistantPanel.jsx'
 import FertiliserPlanner from './FertiliserPlanner.jsx'
+import ModelPanel from './ModelPanel.jsx'
+import ReviewPanel from './ReviewPanel.jsx'
 
 const pct = (x) => `${Math.round(x * 100)}%`
 
-function ReviewQueue({ refreshKey }) {
-  const { t } = useI18n()
-  const [items, setItems] = useState([])
-  useEffect(() => {
-    apiGet('/api/review/queue').then(setItems).catch(() => setItems([]))
-  }, [refreshKey])
-  return (
-    <section className="rounded-xl border border-stone-200 bg-white p-4">
-      <h3 className="font-bold">{t('reviewQueue')} ({items.length})</h3>
-      {items.length === 0 ? (
-        <p className="text-stone-600">{t('reviewEmpty')}</p>
-      ) : (
-        <ul className="mt-2 space-y-2">
-          {items.slice(0, 5).map((s) => (
-            <li key={s.id} className="flex items-center gap-3 text-sm">
-              <img src={s.image_url} alt="" className="h-10 w-10 rounded object-cover" />
-              <span>
-                #{s.id} {s.crop} – {s.diagnosis} ({pct(s.confidence)})
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  )
-}
-
 export default function ScanTab() {
   const { t, lang } = useI18n()
+  const { user, ready } = useAuth()
   const [plots, setPlots] = useState([])
   const [plotId, setPlotId] = useState('')
   const [file, setFile] = useState(null)
@@ -43,13 +22,14 @@ export default function ScanTab() {
   const [result, setResult] = useState(null)
 
   useEffect(() => {
+    if (!user) return
     apiGet('/api/plots')
       .then((ps) => {
         setPlots(ps)
         if (ps.length) setPlotId(String(ps[0].id))
       })
       .catch(() => setPlots([]))
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (!file) return setPreview(null)
@@ -72,13 +52,22 @@ export default function ScanTab() {
     try {
       setResult(await apiPost('/api/scans', form))
     } catch (err) {
-      setError(err.message)
+      setError(err)
     } finally {
       setBusy(false)
     }
   }
 
   const scan = result?.scan
+  if (!ready) return null
+  if (!user) {
+    return (
+      <div className="space-y-4">
+        <p className="rounded-xl border border-stone-200 bg-white p-4">{t('loginToScan')}</p>
+        <ModelPanel />
+      </div>
+    )
+  }
   return (
     <div className="space-y-4">
       <form onSubmit={submit} className="space-y-3 rounded-xl border border-stone-200 bg-white p-4">
@@ -114,7 +103,7 @@ export default function ScanTab() {
         >
           {busy ? t('scanning') : t('scanButton')}
         </button>
-        {error && <p className="text-red-700">{error}</p>}
+        {error && <p className="text-red-700">{errorText(error, t)}</p>}
       </form>
 
       {scan && (
@@ -171,9 +160,13 @@ export default function ScanTab() {
         </section>
       )}
 
+      {scan && <AssistantPanel key={scan.id} scanId={scan.id} />}
+
       <FertiliserPlanner key={plot?.id} plot={plot} />
 
-      <ReviewQueue refreshKey={scan?.id} />
+      {user.role === 'expert' && <ReviewPanel refreshKey={scan?.id} />}
+
+      <ModelPanel />
     </div>
   )
 }

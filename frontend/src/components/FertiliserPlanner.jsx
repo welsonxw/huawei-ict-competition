@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { apiPost } from '../lib/api.js'
 import { useI18n } from '../i18n/LanguageContext.jsx'
+import { errorText } from '../lib/errors.js'
 
 const STAGES = ['seedling', 'vegetative', 'flowering', 'fruiting']
 const NUTRIENTS = ['n', 'p2o5', 'k2o']
@@ -32,7 +33,7 @@ export default function FertiliserPlanner({ plot }) {
         }),
       )
     } catch (err) {
-      setError(err.message)
+      setError(err)
     } finally {
       setBusy(false)
     }
@@ -102,7 +103,7 @@ export default function FertiliserPlanner({ plot }) {
           </button>
         </div>
       </form>
-      {error && <p className="text-red-700">{error}</p>}
+      {error && <p className="text-red-700">{errorText(error, t)}</p>}
       {result && (
         <div className="space-y-2" aria-live="polite">
           {(result.placeholder_requirements || result.placeholder_prices) && (
