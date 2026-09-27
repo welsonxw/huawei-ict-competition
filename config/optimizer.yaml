@@ -1,0 +1,28 @@
+# Phase 13 – routine optimiser v1 (rules + forecast).
+#
+# PROVENANCE: every number below is an ENGINEERING DEFAULT chosen so the optimiser can rank candidate routines.
+# None of them come from DOA/MARDI and none are validated against yield. The UI labels the result as an estimate.
+# TODO(source): DOA/MARDI Pakej Teknologi Cili / Tomato – irrigation timing and volume per growth stage,
+# and whether leaf wetting from irrigation should be modelled (drip irrigation does not wet foliage).
+placeholder: true
+
+horizon_hours: 24
+
+water:
+  times: ["06:00", "07:00", "08:00", "12:00", "17:00", "19:00"]
+  l_per_m2: [1, 2, 3, 5]          # candidate amounts; capped by config/control.yaml limits
+  irrigation_wets_leaves: true     # overhead / hose watering; set false for drip
+  max_wet_hours_after_watering: 12
+  drying_hours: [7, 18]            # local hours when sun can dry leaves (start inclusive, end exclusive)
+
+fertilise:
+  times: ["07:00", "08:00"]
+  horizon_hours: 72
+
+# score = moisture * mean %-points outside the target band per hour
+#       + leaf_wet * extra leaf-wet hours caused by watering
+#       + water * litres per m²
+weights:
+  moisture: 2.0
+  leaf_wet: 0.5
+  water: 0.1
