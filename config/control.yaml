@@ -1,0 +1,47 @@
+# Phase 11 – watering / fertiliser control and safety rules.
+#
+# PROVENANCE: every limit below is an ENGINEERING DEFAULT that keeps the prototype
+# from over-watering or over-dosing a plot. None of them come from DOA/MARDI and
+# they are flagged in the UI as placeholders (see docs/TODO_SOURCES.md).
+# TODO(source): DOA/MARDI Pakej Teknologi Cili / Tomato – irrigation volumes per
+# plant per day by growth stage and fertigation dosing limits.
+placeholder: true
+
+# Area used for per-m² limits when a plot has no area_m2.
+default_area_m2: 100
+# A requested command must be confirmed within this window, otherwise it expires.
+confirm_window_minutes: 5
+# A sent command that the device has not acknowledged within this time is marked expired.
+ack_timeout_seconds: 120
+
+water:
+  unit: L
+  flow_l_per_min: 10            # valve flow used to turn litres into open time
+  max_l_per_m2_command: 5
+  max_l_per_m2_day: 10
+  # Block watering when the latest soil moisture is at or above this. null = top of the
+  # crop's soil_moisture_pct target band in iot.yaml.
+  skip_if_moisture_pct_at_least: null
+  moisture_max_age_minutes: 120 # older readings do not count as "latest"
+  rain_skip_mm: 5               # forecast rain within rain_window_hours that blocks watering
+  rain_window_hours: 6
+  evening_warn_from_hour: 17    # local hour; later watering keeps foliage wet overnight
+
+fertilise:
+  unit: g
+  max_g_per_m2_command: 10
+  max_g_per_m2_day: 10
+  min_hours_between: 72
+  # Block when the latest EC is at or above this. null = top of the crop's EC target band.
+  block_if_ec_at_least: null
+  rain_warn_mm: 10              # heavy rain soon after dosing washes nutrients out
+  rain_window_hours: 24
+
+# In-app simulated valve/doser effect on the plot's simulated sensor (not agronomic data).
+sim:
+  ec_per_g_per_m2: 0.03
+
+# Command payloads follow the IoTDA command format (service_id / command_name / paras).
+commands:
+  water: {service_id: Irrigation, command_name: WATER}
+  fertilise: {service_id: Fertigation, command_name: FERTILISE}

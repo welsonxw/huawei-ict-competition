@@ -44,3 +44,15 @@ Nothing in this list may be invented. Until filled, the app runs on clearly flag
 | Leaf-wet alert (≥ 6 h) | `config/iot.yaml` `leaf_wet_alert_hours` | Engineering default, aligned with `rh_hours` in disease profiles |
 | Offline after 45 min, low battery 20 % | `config/iot.yaml` | Engineering default |
 | Simulator soil constants (root zone, field capacity, ET) | `config/iot.yaml` `simulator` | Engineering default – only drives the "Simulated device" |
+
+## Watering and fertiliser control (Phase 11)
+
+| Value | File | Status / needed source |
+|---|---|---|
+| Water limits (5 L/m² per command, 10 L/m² per day) | `config/control.yaml` `water` | TODO – DOA/MARDI irrigation volume per plant per day by growth stage |
+| Skip watering at the top of the soil-moisture band; ≥ 5 mm rain in 6 h | `config/control.yaml` `water` | Engineering default |
+| Evening watering warning (after 17:00) | `config/control.yaml` `water` | Engineering default, based on longer leaf wetness driving the Phase 4 disease models |
+| Fertiliser limits (10 g/m² per command and per day, 72 h apart) | `config/control.yaml` `fertilise` | TODO – DOA Pakej Teknologi fertigation doses (same gap as the fertiliser planner rates) |
+| EC ceiling for fertiliser (top of EC band) | `config/iot.yaml` `targets` | TODO – DOA/MARDI |
+| Valve flow 10 L/min, ack timeout 120 s | `config/control.yaml` | Engineering default – set to the installed hardware |
+| Simulated doser EC effect | `config/control.yaml` `sim` | Engineering default – only drives the "Simulated device" |

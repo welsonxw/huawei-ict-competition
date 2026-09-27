@@ -7,6 +7,7 @@ from flask import Flask
 from .extensions import db
 from .models import Device, Plot, User
 from .services.auth import ROLES, create_user
+from .services.control import run_due_schedules
 from .services.demo import clear_demo, seed_demo
 from .services.device_sim import run_simulated_devices, simulate_device
 from .services.fertiliser import seed_fertiliser
@@ -98,6 +99,12 @@ def register_cli(app: Flask):
             for uid, n in run_simulated_devices().items():
                 click.echo(f"{uid}: +{n} readings")
 
+    @app.cli.command("run-schedules")
+    def run_schedules_cmd():
+        """Run watering/fertiliser schedules that are due now and expire stale commands."""
+        for cmd in run_due_schedules():
+            click.echo(f"schedule {cmd.schedule_id}: {cmd.action} {cmd.amount:g} {cmd.unit} -> {cmd.status}")
+
     @app.cli.command("mqtt-bridge")
     def mqtt_bridge_cmd():
         """Store IoTDA-style MQTT property reports from MQTT_BROKER_URL (local Mosquitto)."""
@@ -110,10 +117,11 @@ def register_cli(app: Flask):
     @click.argument("plot_id", type=int)
     @click.option("--name", default=None)
     @click.option("--simulated", is_flag=True, help="For scripts/device_simulator.py: labelled \"Simulated device\".")
-    def add_device_cmd(plot_id, name, simulated):
-        """Register a sensor on a plot and print its one-time key."""
+    @click.option("--kind", type=click.Choice(["sensor", "valve", "doser"]), default="sensor")
+    def add_device_cmd(plot_id, name, simulated, kind):
+        """Register a sensor, water valve or fertiliser doser on a plot and print its one-time key."""
         plot = db.session.get(Plot, plot_id)
         if plot is None:
             raise click.ClickException("plot not found")
-        device, key = create_device(plot, name, simulated=simulated, external=simulated)
+        device, key = create_device(plot, name, simulated=simulated, external=simulated, kind=kind)
         click.echo(f"device id:  {device.uid}\ndevice key: {key}\n(store the key now; it is not shown again)")

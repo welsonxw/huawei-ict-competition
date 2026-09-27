@@ -12,7 +12,7 @@ from ..models import Device
 from ..models.core import utcnow
 from .config_loader import iot as iot_config
 from .config_loader import thresholds
-from .iot import EXTERNAL_SIM_KIND, ingest
+from .iot import SENSOR_KIND, ingest
 from .weather import get_forecast
 
 
@@ -128,6 +128,6 @@ def simulate_device(device, now=None, backfill_hours=None):
 
 def run_simulated_devices(now=None):
     """Advance every simulated device. Returns {uid: readings_added}."""
-    devices = Device.query.filter(Device.is_simulated.is_(True), Device.kind != EXTERNAL_SIM_KIND).all()
+    devices = Device.query.filter(Device.is_simulated.is_(True), Device.kind == SENSOR_KIND).all()
     return {d.uid: simulate_device(d, now=now) for d in devices}
 

@@ -25,3 +25,20 @@ export function apiPost(path, data) {
     body: isForm ? data : JSON.stringify(data ?? {}),
   }).then(handle)
 }
+
+function sendJson(method, path, data) {
+  return fetch(`${BASE}${path}`, {
+    method,
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: data === undefined ? undefined : JSON.stringify(data),
+  }).then(handle)
+}
+
+export function apiPatch(path, data) {
+  return sendJson('PATCH', path, data)
+}
+
+export function apiDelete(path) {
+  return sendJson('DELETE', path)
+}

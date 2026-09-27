@@ -3,6 +3,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import { apiGet, apiPost } from '../lib/api.js'
 import { useI18n } from '../i18n/LanguageContext.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
+import FarmControls from './FarmControls.jsx'
 import { errorText } from '../lib/errors.js'
 import { METRICS, alertKey, alertVars, chartRows, formatBand, formatValue, minutesAgo } from '../monitor/format.js'
 
@@ -204,6 +205,8 @@ export default function FarmMonitor() {
           {data.targets_placeholder && <p className="text-xs text-stone-500">{t('monPlaceholder')}</p>}
         </>
       )}
+
+      {data && <FarmControls plotId={plotId} onApplied={load} />}
 
       {data && (
         <section className="rounded-xl border border-stone-200 bg-white p-4" aria-live="polite">

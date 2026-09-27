@@ -52,6 +52,25 @@ GET /api/plots/<id>/monitor → latest values, status vs crop target band, alert
 - Simulated devices run a simple soil-water bucket model driven by the Open-Meteo forecast for the plot (synthetic day/night pattern when offline). Their readings are flagged `is_simulated` and the UI shows **"Simulated device"**.
 - Target bands and alert limits live in `config/iot.yaml` and are engineering placeholders (`docs/TODO_SOURCES.md`).
 
+## Watering and fertiliser control (Phase 11)
+
+```
+Farm monitor "Water / Fertilise" ─┐                      ┌─ simulated valve/doser → updates the Simulated device sensor → done
+schedule (every minute, MYT)  ─────┼─> safety checks ──> confirm ──> dispatch ─┼─ HTTP: device polls GET /api/iot/commands, replies POST .../response
+(Phase 12 game, Phase 13 optimiser)┘   (blocked = logged)            │          ├─ MQTT: $oc/devices/{uid}/sys/commands/request_id={id} → response topic → mqtt-bridge
+                                                                      │          └─ IoTDA: synchronous command API, device reply returned in the HTTP response
+                                                                      └─ no ack within 120 s → expired
+```
+
+- Commands (`device_commands`) and schedules (`control_schedules`) are always logged, including blocked, failed, expired and cancelled ones.
+- Safety checks (`backend/app/services/control.py`, limits in `config/control.yaml`): amount per command and per day (per m² × plot area),
+  device online and not busy, skip watering when soil moisture is at the top of the crop band or ≥ 5 mm rain is forecast in 6 h,
+  warn on evening watering; for fertiliser a minimum interval, EC ceiling and heavy-rain warning.
+- Manual commands must be confirmed within 5 minutes and are re-checked at confirm time. Schedules are the confirmation for their own runs.
+- Only the farmer who owns the plot can actuate; experts see the log read-only.
+- Payloads use the IoTDA command format (`service_id`, `command_name`, `paras`), so the same firmware works on HTTP, MQTT and IoTDA.
+- In-app simulated valves/dosers are labelled **"Simulated device"** and never claim real water or fertiliser was applied.
+
 ## Code map
 
 | Path | What |
