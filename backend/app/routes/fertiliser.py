@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from ..extensions import db
 from ..models import Plot, Scan
-from ..services.auth import login_required
+from ..services.auth import can_access_plot, current_user, login_required
 from ..services.fertiliser import STAGES, FertiliserError, load_products, recommend, stage_requirements
 
 bp = Blueprint("fertiliser", __name__)
@@ -51,7 +51,7 @@ def recommend_route():
             if plot_id is None or not plot_id.is_integer():
                 raise FertiliserError("plot_id must be an integer")
             plot = db.session.get(Plot, int(plot_id))
-            if plot is None:
+            if not can_access_plot(current_user(), plot):
                 return jsonify(error="plot not found"), 404
             crop = plot.crop
             area = area or plot.area_m2

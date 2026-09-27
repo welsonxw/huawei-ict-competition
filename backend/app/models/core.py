@@ -19,11 +19,12 @@ class Plot(db.Model):
     area_m2 = db.Column(db.Float)
     num_plants = db.Column(db.Integer)
     is_simulated = db.Column(db.Boolean, nullable=False, default=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
 
     def to_dict(self):
         return {
-            "id": self.id, "name": self.name, "crop": self.crop, "lat": self.lat, "lon": self.lon,
+            "id": self.id, "owner_id": self.owner_id, "name": self.name, "crop": self.crop, "lat": self.lat, "lon": self.lon,
             "grid_cell": self.grid_cell, "region": self.region, "area_m2": self.area_m2,
             "num_plants": self.num_plants, "is_simulated": self.is_simulated,
         }
@@ -50,6 +51,7 @@ class Scan(db.Model):
     review_status = db.Column(db.String(16), nullable=False, default="none", index=True)
     confirmed_label = db.Column(db.String(64))
     is_simulated = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
 
     plot = db.relationship("Plot")

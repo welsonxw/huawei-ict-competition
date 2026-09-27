@@ -4,7 +4,7 @@ import click
 from flask import Flask
 
 from .extensions import db
-from .models import Device, Plot
+from .models import Device, Plot, User
 from .services.auth import ROLES, create_user
 from .services.demo import clear_demo, seed_demo
 from .services.device_sim import run_simulated_devices, simulate_device
@@ -27,14 +27,15 @@ def register_cli(app: Flask):
         """Seed disease profiles, fertiliser tables and example plots (idempotent)."""
         seed_profiles()
         seed_fertiliser()
-        if Plot.query.filter_by(is_simulated=False).count() == 0:
-            for name, crop, lat, lon in DEFAULT_PLOTS:
-                create_plot(name, crop, lat, lon, area_m2=400, num_plants=200)
         for username, role in (("farmer", "farmer"), ("expert", "expert")):
             password = os.getenv(f"DEMO_{role.upper()}_PASSWORD")
             if password:
                 create_user(username, password, role)
                 click.echo(f"demo user '{username}' ({role}) ready")
+        farmer = User.query.filter_by(username="farmer", role="farmer").one_or_none()
+        if Plot.query.filter_by(is_simulated=False).count() == 0:
+            for name, crop, lat, lon in DEFAULT_PLOTS:
+                create_plot(name, crop, lat, lon, area_m2=400, num_plants=200, owner=farmer)
         click.echo("seeded disease profiles, fertiliser tables and plots")
 
     @app.cli.command("create-user")
@@ -48,6 +49,21 @@ def register_cli(app: Flask):
         except ValueError as exc:
             raise click.ClickException(str(exc)) from exc
         click.echo(f"user '{username}' ({role}) saved")
+
+    @app.cli.command("assign-plots")
+    @click.argument("username")
+    @click.option("--plot", "plot_ids", type=int, multiple=True, help="Plot id (repeatable). Default: every unowned real plot.")
+    def assign_plots_cmd(username, plot_ids):
+        """Give a farmer ownership of plots so they see them in Scan, Fertiliser and Farm monitor."""
+        user = User.query.filter_by(username=username).one_or_none()
+        if user is None:
+            raise click.ClickException(f"no user '{username}'")
+        q = Plot.query.filter(Plot.id.in_(plot_ids)) if plot_ids else Plot.query.filter_by(owner_id=None, is_simulated=False)
+        plots = q.all()
+        for plot in plots:
+            plot.owner_id = user.id
+        db.session.commit()
+        click.echo(f"{len(plots)} plot(s) now owned by {username}")
 
     @app.cli.command("seed-demo")
     @click.option("--clear", is_flag=True, help="Remove the simulated scenario instead of creating it.")

@@ -8,7 +8,7 @@ from flask import jsonify, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import db
-from ..models import User
+from ..models import Plot, Scan, User
 
 ROLES = ("farmer", "expert")
 
@@ -65,3 +65,29 @@ def login_required(role=None):
         return wrapper
 
     return deco
+
+
+def can_access_plot(user, plot):
+    """Experts see every plot; a farmer sees only plots they own."""
+    return user is not None and plot is not None and (user.role == "expert" or plot.owner_id == user.id)
+
+
+def can_access_scan(user, scan):
+    if user is None or scan is None:
+        return False
+    if user.role == "expert" or scan.user_id == user.id:
+        return True
+    return scan.plot is not None and scan.plot.owner_id == user.id
+
+
+def visible_plots(user):
+    q = Plot.query
+    return q if user.role == "expert" else q.filter(Plot.owner_id == user.id)
+
+
+def visible_scans(user):
+    q = Scan.query
+    if user.role == "expert":
+        return q
+    owned = db.session.query(Plot.id).filter(Plot.owner_id == user.id)
+    return q.filter(db.or_(Scan.user_id == user.id, Scan.plot_id.in_(owned)))

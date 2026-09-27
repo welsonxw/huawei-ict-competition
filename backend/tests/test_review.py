@@ -74,3 +74,22 @@ def test_labels_and_metrics(app, client, tmp_path):
     assert client.get("/api/model/metrics").get_json() == {"runs": []}
     (tmp_path / "metrics.json").write_text(json.dumps({"runs": [{"crop": "chilli", "version": "v1", "val_accuracy": 0.8}]}))
     assert client.get("/api/model/metrics").get_json()["runs"][0]["version"] == "v1"
+
+
+def test_farmer_sees_only_own_scans(client, storage):
+    from app.models import User
+    from app.services.scans import create_plot
+
+    login(client, "farmer", "owner")
+    mine = make_scan(storage)
+    mine.user_id = User.query.filter_by(username="owner").one().id
+    plot = create_plot("Owned", "chilli", 1.85, 103.33, owner=User.query.filter_by(username="owner").one())
+    on_plot = make_scan(storage, diagnosis="healthy")
+    on_plot.plot_id = plot.id
+    other = make_scan(storage, diagnosis="cercospora")
+    db.session.commit()
+    ids = {s["id"] for s in client.get("/api/scans").get_json()}
+    assert ids == {mine.id, on_plot.id}
+    assert client.get(f"/api/scans/{other.id}/image").status_code == 404
+    assert client.get(f"/api/scans/{mine.id}/image").status_code == 200
+    assert client.post("/api/assistant", json={"scan_id": other.id, "question": "?"}).status_code == 404
