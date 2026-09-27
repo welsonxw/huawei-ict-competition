@@ -46,6 +46,7 @@ export default function FarmMonitor() {
   const [busy, setBusy] = useState(false)
   const [newKey, setNewKey] = useState(null)
   const [now, setNow] = useState(Date.now())
+  const [controlRev, setControlRev] = useState(0)
 
   useEffect(() => {
     if (!user) return
@@ -208,9 +209,15 @@ export default function FarmMonitor() {
         </>
       )}
 
-      {data && <FarmControls plotId={plotId} onApplied={load} />}
+      {data && <FarmControls plotId={plotId} onApplied={load} refreshKey={controlRev} />}
 
-      {data && <RoutineOptimiser plotId={plotId} onApplied={load} />}
+      {data && <RoutineOptimiser
+          plotId={plotId}
+          onApplied={() => {
+            load()
+            setControlRev((r) => r + 1)
+          }}
+        />}
 
       {data && <LearningPanel plotId={plotId} />}
 

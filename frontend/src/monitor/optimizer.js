@@ -4,10 +4,11 @@ export function reasonKey(reason) {
   return `opt_${reason.code}`
 }
 
-export function reasonVars(reason) {
+export function reasonVars(reason, t) {
   const out = {}
   for (const [k, v] of Object.entries(reason)) {
-    if (k !== 'code') out[k] = typeof v === 'number' ? String(Math.round(v * 10) / 10) : v
+    if (k === 'timing' && t) out[k] = t(`lrnTiming_${v}`)
+    else if (k !== 'code') out[k] = typeof v === 'number' ? String(Math.round(v * 10) / 10) : v
   }
   return out
 }

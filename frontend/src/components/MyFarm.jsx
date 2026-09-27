@@ -225,7 +225,7 @@ export default function MyFarm() {
                 {advice.best.kind === 'skip'
                   ? t('optSkip')
                   : `${advice.best.litres} L ${t('optAt', { time: advice.best.time_local, h: advice.best.in_hours })}`}
-                {advice.reasons[0] && ` – ${t(reasonKey(advice.reasons[0]), reasonVars(advice.reasons[0]))}`}
+                {advice.reasons[0] && ` – ${t(reasonKey(advice.reasons[0]), reasonVars(advice.reasons[0], t))}`}
                 <span className="block text-xs">{t('optEstimate')}</span>
               </p>
             )}

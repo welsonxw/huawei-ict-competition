@@ -32,7 +32,7 @@ export function Checks({ checks }) {
   )
 }
 
-export default function FarmControls({ plotId, onApplied }) {
+export default function FarmControls({ plotId, onApplied, refreshKey }) {
   const { t, lang } = useI18n()
   const [state, setState] = useState(null)
   const [error, setError] = useState(null)
@@ -57,6 +57,10 @@ export default function FarmControls({ plotId, onApplied }) {
     const id = setInterval(load, REFRESH_MS)
     return () => clearInterval(id)
   }, [load])
+
+  useEffect(() => {
+    if (refreshKey) load()
+  }, [refreshKey, load])
 
   const run = async (fn) => {
     setBusy(true)

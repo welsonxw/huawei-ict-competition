@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useI18n } from './i18n/LanguageContext.jsx'
+import { useAuth } from './auth/AuthContext.jsx'
 import LanguageToggle from './components/LanguageToggle.jsx'
 import HealthStatus from './components/HealthStatus.jsx'
 import LoginBox from './components/LoginBox.jsx'
@@ -21,6 +22,7 @@ const TABS = [
 
 export default function App() {
   const { t } = useI18n()
+  const { user } = useAuth()
   const [active, setActive] = useState('scan')
   const tab = TABS.find((x) => x.id === active)
 
@@ -55,7 +57,7 @@ export default function App() {
         ))}
       </nav>
 
-      <main id={`panel-${active}`} role="tabpanel" aria-labelledby={`tab-${active}`} className="flex-1">
+      <main key={user?.id ?? 'anon'} id={`panel-${active}`} role="tabpanel" aria-labelledby={`tab-${active}`} className="flex-1">
         {tab.render(t)}
       </main>
 
