@@ -14,6 +14,8 @@ Browser ──HTTP(S)──> ECS (EIP / ELB)
                       │                                          └─> Open-Meteo      (weather, public internet)
 ```
 
+New to Huawei Cloud? Start with the ordered checklist in [HUAWEI_SETUP_CHECKLIST.md](HUAWEI_SETUP_CHECKLIST.md).
+
 Console screens change over time; the steps below name the settings to look for rather than exact button positions.
 
 ## 0. Before you start
