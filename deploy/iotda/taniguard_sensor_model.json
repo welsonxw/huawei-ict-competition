@@ -1,0 +1,20 @@
+{
+  "_comment": "IoTDA product model (JSON) for a TaniGuard field sensor. Import in IoTDA console > Products > Model Definition. Property names match /api/iot/readings so no mapping is needed.",
+  "services": [
+    {
+      "service_id": "Sensor",
+      "service_type": "Sensor",
+      "description": "Soil and air readings from one field node",
+      "properties": [
+        {"property_name": "soil_moisture_pct", "data_type": "decimal", "min": "0", "max": "100", "unit": "%", "method": "R", "required": false},
+        {"property_name": "soil_temp_c", "data_type": "decimal", "min": "-5", "max": "70", "unit": "°C", "method": "R", "required": false},
+        {"property_name": "air_temp_c", "data_type": "decimal", "min": "-5", "max": "60", "unit": "°C", "method": "R", "required": false},
+        {"property_name": "air_rh_pct", "data_type": "decimal", "min": "0", "max": "100", "unit": "%", "method": "R", "required": false},
+        {"property_name": "soil_ec_ds_m", "data_type": "decimal", "min": "0", "max": "20", "unit": "dS/m", "method": "R", "required": false},
+        {"property_name": "light_lux", "data_type": "decimal", "min": "0", "max": "200000", "unit": "lux", "method": "R", "required": false},
+        {"property_name": "battery_pct", "data_type": "decimal", "min": "0", "max": "100", "unit": "%", "method": "R", "required": false},
+        {"property_name": "leaf_wet", "data_type": "int", "min": "0", "max": "1", "method": "R", "required": false}
+      ]
+    }
+  ]
+}

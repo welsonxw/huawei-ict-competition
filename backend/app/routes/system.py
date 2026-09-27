@@ -16,5 +16,6 @@ def system():
         "storage": "obs" if cfg["STORAGE_BACKEND"] == "obs" else "local",
         "predictor": "modelarts" if cfg["PREDICTOR"] == "remote" else "local",
         "assistant": "llm" if cfg["LLM_ENDPOINT"] and cfg["LLM_API_KEY"] else "template",
+        "iot": "iotda" if cfg["IOTDA_PUSH_TOKEN"] else ("mqtt" if cfg["MQTT_BROKER_URL"] else "http"),
         "scheduler": bool(cfg["ENABLE_SCHEDULER"]),
     })

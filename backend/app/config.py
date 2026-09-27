@@ -24,6 +24,11 @@ class Config:
     LLM_ENDPOINT = os.getenv("LLM_ENDPOINT", "")
     LLM_API_KEY = os.getenv("LLM_API_KEY", "")
     LLM_MODEL = os.getenv("LLM_MODEL", "")
+    MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "")
+    MQTT_USERNAME = os.getenv("MQTT_USERNAME", "")
+    MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
+    IOTDA_PRODUCT_ID = os.getenv("IOTDA_PRODUCT_ID", "")
+    IOTDA_PUSH_TOKEN = os.getenv("IOTDA_PUSH_TOKEN", "")
     ENABLE_SCHEDULER = os.getenv("ENABLE_SCHEDULER", "false").lower() == "true"
     ENABLE_DEVICE_SIM = os.getenv("ENABLE_DEVICE_SIM", "false").lower() == "true"
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
@@ -40,3 +45,6 @@ class TestConfig(Config):
     ENABLE_SCHEDULER = False
     ENABLE_DEVICE_SIM = False
     SECRET_KEY = "test-secret"
+    MQTT_BROKER_URL = ""
+    IOTDA_PRODUCT_ID = ""
+    IOTDA_PUSH_TOKEN = ""

@@ -8,6 +8,7 @@ import { METRICS, alertKey, alertVars, chartRows, formatBand, formatValue, minut
 
 const REFRESH_MS = 30000
 const RANGES = [24, 72, 168]
+const TRANSPORT_LABELS = { http: 'HTTP', mqtt: 'MQTT', iotda: 'Huawei IoTDA' }
 const STATUS_STYLE = {
   ok: 'border-emerald-300 bg-emerald-50',
   low: 'border-amber-400 bg-amber-50',
@@ -141,6 +142,11 @@ export default function FarmMonitor() {
                   {t(d.is_simulated ? 'monSimBadge' : 'monRealBadge')}
                 </span>
                 <strong>{d.name}</strong>
+                {TRANSPORT_LABELS[d.transport] && (
+                  <span className="text-xs text-stone-500">
+                    {t('monVia', { value: TRANSPORT_LABELS[d.transport] })}
+                  </span>
+                )}
                 <span className={d.online ? 'text-emerald-700' : 'text-red-700'}>
                   ● {t(d.online ? 'monOnline' : 'monOffline')}
                 </span>

@@ -174,6 +174,7 @@ class Device(db.Model):
     key_hash = db.Column(db.String(255), nullable=False)
     is_simulated = db.Column(db.Boolean, nullable=False, default=False)
     sim_state = db.Column(db.JSON)
+    transport = db.Column(db.String(16))
     last_seen_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
 
@@ -182,7 +183,7 @@ class Device(db.Model):
     def to_dict(self):
         return {
             "id": self.id, "uid": self.uid, "plot_id": self.plot_id, "name": self.name, "kind": self.kind,
-            "is_simulated": self.is_simulated,
+            "is_simulated": self.is_simulated, "transport": self.transport,
             "last_seen_at": self.last_seen_at.isoformat() + "Z" if self.last_seen_at else None,
         }
 

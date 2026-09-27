@@ -24,7 +24,7 @@ TaniGuard has three layers: the **farm layer** (scan, action plan, fertiliser), 
 | Disease model | PyTorch in the backend | ModelArts real-time service (`ml/serve.py` image) | `PREDICTOR=remote` |
 | Assistant | rule-based templates | Pangu or any OpenAI-compatible LLM | `LLM_*` |
 | Weather | Open-Meteo | Open-Meteo | – |
-| Field sensors | "Simulated device" (in-app job or `scripts/device_simulator.py`) | same HTTP ingest now; Huawei IoTDA (MQTT) planned in Phase 10 | `ENABLE_DEVICE_SIM` |
+| Field sensors | "Simulated device" (in-app job or `scripts/device_simulator.py`) | Huawei IoTDA (MQTT) → HTTP forwarding to `/api/iot/iotda/push/<token>` (see IOTDA.md); local Mosquitto + `flask mqtt-bridge` | `ENABLE_DEVICE_SIM`, `IOTDA_PUSH_TOKEN`, `MQTT_BROKER_URL` |
 
 ## Main data flow
 
@@ -42,7 +42,7 @@ TaniGuard has three layers: the **farm layer** (scan, action plan, fertiliser), 
 Simulated device (scheduler job, 15 min)   ─┐
 scripts/device_simulator.py / ESP32 (HTTP) ─┼─> POST /api/iot/readings (X-Device-Id / X-Device-Key)
                                             │      validate ranges + timestamp → sensor_readings (MySQL/RDS)
-Huawei IoTDA via MQTT (Phase 10, planned)  ─┘
+Huawei IoTDA / local MQTT bridge (Phase 10)  ─┘
 GET /api/plots/<id>/monitor → latest values, status vs crop target band, alerts, history → Farm monitor tab
 ```
 

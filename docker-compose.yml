@@ -51,6 +51,34 @@ services:
     ports:
       - "127.0.0.1:5000:5000"
 
+  # Local MQTT path (Phase 10): docker compose --profile iot up
+  mosquitto:
+    image: eclipse-mosquitto:2
+    profiles: ["iot"]
+    volumes:
+      - ./deploy/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    ports:
+      - "127.0.0.1:1883:1883"
+
+  mqtt-bridge:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    profiles: ["iot"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-mysql+pymysql://${MYSQL_USER:-taniguard}:${MYSQL_PASSWORD:-taniguard}@mysql:3306/${MYSQL_DATABASE:-taniguard}?charset=utf8mb4}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CONFIG_DIR: /srv/config
+      MQTT_BROKER_URL: mqtt://mosquitto:1883
+    command: ["flask", "mqtt-bridge"]
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - mosquitto
+
   frontend:
     build: ./frontend
     depends_on:

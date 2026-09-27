@@ -9,6 +9,7 @@ const SERVICES = [
   { id: "obs", key: "storage", cloud: "obs", name: "OBS" },
   { id: "modelarts", key: "predictor", cloud: "modelarts", name: "ModelArts" },
   { id: "pangu", key: "assistant", cloud: "llm", name: "Pangu / LLM" },
+  { id: "iotda", key: "iot", cloud: "iotda", name: "IoTDA" },
 ];
 
 function Box({ title, body, badge, active }) {
@@ -64,7 +65,7 @@ export default function ArchitectureTab() {
           active
         />
         <Arrow />
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {SERVICES.map((s) => (
             <Box
               key={s.id}
