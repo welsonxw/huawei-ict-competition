@@ -19,7 +19,7 @@ def test_system_reports_backends_without_secrets(app, client):
     app.config.update(STORAGE_BACKEND="obs", PREDICTOR="remote", LLM_ENDPOINT="https://x", LLM_API_KEY="secret")
     body = client.get("/api/system").get_json()
     assert body == {"database": "sqlite", "cache": "fakeredis", "storage": "obs", "predictor": "modelarts",
-                    "assistant": "llm", "scheduler": False}
+                    "assistant": "llm", "iot": "http", "scheduler": False}
 
 
 class FakePredictor:

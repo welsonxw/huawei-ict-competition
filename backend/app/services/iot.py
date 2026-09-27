@@ -102,8 +102,13 @@ def parse_reading(payload, now=None):
     return values
 
 
-def ingest(device, payloads, now=None):
-    """Store one or many readings for a device (all-or-nothing). Returns the new rows."""
+TRANSPORTS = ("http", "mqtt", "iotda", "sim")
+
+
+def ingest(device, payloads, now=None, transport="http"):
+    """Store one or many readings for a device (all-or-nothing). Returns the new rows.
+
+    transport records the path the latest batch arrived on (HTTP, local MQTT bridge, IoTDA push, in-app sim)."""
     if isinstance(payloads, dict):
         payloads = [payloads]
     if not isinstance(payloads, list) or not payloads:
@@ -118,6 +123,7 @@ def ingest(device, payloads, now=None):
     latest = max(r.ts for r in rows)
     if not device.last_seen_at or latest > device.last_seen_at:
         device.last_seen_at = latest
+    device.transport = transport
     db.session.commit()
     return rows
 

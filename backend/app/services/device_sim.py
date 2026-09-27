@@ -119,7 +119,7 @@ def simulate_device(device, now=None, backfill_hours=None):
         return 0
     batch = cfg_all["max_batch"]
     for i in range(0, len(payloads), batch):
-        ingest(device, payloads[i:i + batch], now=now)
+        ingest(device, payloads[i:i + batch], now=now, transport="sim")
     state["ts"] = (ts - interval).isoformat()
     device.sim_state = state
     db.session.commit()

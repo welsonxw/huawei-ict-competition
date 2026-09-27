@@ -1,3 +1,4 @@
+import logging
 import os
 
 import click
@@ -10,6 +11,7 @@ from .services.demo import clear_demo, seed_demo
 from .services.device_sim import run_simulated_devices, simulate_device
 from .services.fertiliser import seed_fertiliser
 from .services.iot import create_device
+from .services.mqtt_bridge import run_bridge
 from .services.profiles import seed_profiles
 from .services.risk_engine import refresh_all
 from .services.scans import create_plot
@@ -95,6 +97,14 @@ def register_cli(app: Flask):
         else:
             for uid, n in run_simulated_devices().items():
                 click.echo(f"{uid}: +{n} readings")
+
+    @app.cli.command("mqtt-bridge")
+    def mqtt_bridge_cmd():
+        """Store IoTDA-style MQTT property reports from MQTT_BROKER_URL (local Mosquitto)."""
+        if not app.config["MQTT_BROKER_URL"]:
+            raise click.ClickException("set MQTT_BROKER_URL, e.g. mqtt://localhost:1883")
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+        run_bridge(app)
 
     @app.cli.command("add-device")
     @click.argument("plot_id", type=int)

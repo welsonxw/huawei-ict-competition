@@ -224,6 +224,10 @@ LLM_MODEL=<model name>
 
 Use a Pangu (or other ModelArts-hosted) model that offers this API format. If the endpoint uses a different format, add a provider class next to `OpenAICompatibleProvider` in `backend/app/services/assistant.py`. With no key, or if the call fails, the assistant answers from built-in BM/EN templates.
 
+## 11b. Optional – field sensors on IoTDA
+
+See [IOTDA.md](IOTDA.md): create an IoTDA product from `deploy/iotda/taniguard_sensor_model.json`, register each device with node ID = TaniGuard device id, and add an HTTP forwarding rule to `https://<domain>/api/iot/iotda/push/<IOTDA_PUSH_TOKEN>`.
+
 ## 12. Updating and backups
 
 ```bash
@@ -246,6 +250,8 @@ RDS takes automated backups (check the retention period under the instance's **B
 | `SECRET_KEY` | random, saved in `data/.secret_key` | long random string |
 | `SESSION_COOKIE_SECURE` | `false` | `true` behind HTTPS |
 | `ENABLE_SCHEDULER` | `true` in compose | `true` |
+| `IOTDA_PRODUCT_ID` / `IOTDA_PUSH_TOKEN` | – | IoTDA product ID + random token in the forwarding URL |
+| `MQTT_BROKER_URL` / `MQTT_USERNAME` / `MQTT_PASSWORD` | set by `--profile iot` | only for a self-hosted broker |
 | `CORS_ORIGINS` | empty | empty (same origin) |
 | `DEMO_FARMER_PASSWORD` / `DEMO_EXPERT_PASSWORD` | – | optional |
 

@@ -17,6 +17,7 @@ AI crop-health app for chilli and tomato growers that turns farmers' leaf scans 
 | OBS | Leaf photos and heatmaps (S3-compatible API) |
 | ModelArts (optional) | Remote disease-model inference (`ml/serve.py` custom image) |
 | Pangu / LLM (optional) | Farmer assistant |
+| IoTDA (optional) | Field sensors over MQTT, forwarded to the API ([docs/IOTDA.md](docs/IOTDA.md)) |
 
 Step-by-step deployment: [docs/DEPLOY_HUAWEI_CLOUD.md](docs/DEPLOY_HUAWEI_CLOUD.md). Design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). How to use the app: [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
@@ -42,6 +43,7 @@ docker compose up -d --build
 - Plot ownership: a farmer only sees plots they created (or were given with `flask assign-plots USERNAME [--plot ID]`) and their own scans; experts see everything. `seed-base` gives the example plots to the demo `farmer` when that user exists.
 - Demo data (always labelled **"Simulated scenario"**): `docker compose exec backend flask seed-demo` (`--clear` to remove).
 - Farm monitor sensors (always labelled **"Simulated device"**): `docker compose exec backend flask sim-devices --add` attaches one to each plot and backfills 24 h; with `ENABLE_DEVICE_SIM=true` new readings arrive every 15 min. You can also press "Add simulated sensor" in the Farm monitor tab.
+- Sensors over MQTT: `docker compose --profile iot up` adds a local Mosquitto broker and bridge; on Huawei Cloud, devices connect to IoTDA and readings are forwarded to the API. See [docs/IOTDA.md](docs/IOTDA.md).
 - Real or external devices: `flask add-device <plot_id>` prints a device ID and one-time key, then POST readings to `/api/iot/readings` with `X-Device-Id` / `X-Device-Key` headers. `scripts/device_simulator.py` does exactly that (register it with `--simulated`).
 
 Without `DATABASE_URL` or Docker, the backend falls back to SQLite, so it also runs as a plain Flask app:
