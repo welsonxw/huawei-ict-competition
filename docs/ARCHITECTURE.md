@@ -52,6 +52,16 @@ GET /api/plots/<id>/monitor → latest values, status vs crop target band, alert
 - Simulated devices run a simple soil-water bucket model driven by the Open-Meteo forecast for the plot (synthetic day/night pattern when offline). Their readings are flagged `is_simulated` and the UI shows **"Simulated device"**.
 - Target bands and alert limits live in `config/iot.yaml` and are engineering placeholders (`docs/TODO_SOURCES.md`).
 
+## My farm game mode (Phase 12)
+
+`GET /api/plots/<id>/farm` (owner or expert) returns one plot shaped for the game: latest sensor values and status,
+soil state (dry / moist / wet from the soil-moisture target band), rain forecast for the next 3 h, MYT clock,
+sick plants from the last 14 days of scans (confirmed label wins), and the Phase 11 control state. The game draws up to
+50 plants from this; each sick scan marks one plant. Growth stage is not tracked, so plants share one stage.
+Water/Fertilise in the game call `POST /api/plots/<id>/commands` with `source: "game"` and follow the same
+safety checks, confirmation and command log as the Farm monitor. Simulated sensors, actuators and scans keep their
+"Simulated device" / "Simulated scenario" banners.
+
 ## Watering and fertiliser control (Phase 11)
 
 ```

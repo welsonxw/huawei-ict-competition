@@ -119,7 +119,7 @@ def _device_online(device, now):
     return bool(device.last_seen_at and now - device.last_seen_at <= window)
 
 
-def _rain(plot, hours, now):
+def rain_forecast_mm(plot, hours, now):
     wcfg = thresholds()["weather"]
     try:
         forecast = get_forecast(plot.lat, plot.lon)
@@ -167,7 +167,7 @@ def evaluate(plot, device, action, amount, now=None, exclude_id=None):
             out.append(check("block", "moisture_high", value=moisture, limit=lim["skip_moisture_pct"]))
         else:
             out.append(check("ok", "moisture_ok", value=moisture, limit=lim["skip_moisture_pct"]))
-        rain = _rain(plot, w["rain_window_hours"], now)
+        rain = rain_forecast_mm(plot, w["rain_window_hours"], now)
         if rain is None:
             out.append(check("warn", "forecast_unknown"))
         elif rain >= w["rain_skip_mm"]:
@@ -190,7 +190,7 @@ def evaluate(plot, device, action, amount, now=None, exclude_id=None):
             out.append(check("block", "ec_high", value=ec, limit=lim["block_ec"]))
         else:
             out.append(check("ok", "ec_ok", value=ec, limit=lim["block_ec"]))
-        rain = _rain(plot, f["rain_window_hours"], now)
+        rain = rain_forecast_mm(plot, f["rain_window_hours"], now)
         if rain is not None and rain >= f["rain_warn_mm"]:
             out.append(check("warn", "fertilise_rain", mm=rain, hours=f["rain_window_hours"]))
     return out

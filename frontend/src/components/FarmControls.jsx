@@ -18,7 +18,7 @@ const REFRESH_MS = 15000
 const ACTIONS = ['water', 'fertilise']
 const DAYS = ['0', '1', '2', '3', '4', '5', '6']
 
-function Checks({ checks }) {
+export function Checks({ checks }) {
   const { t } = useI18n()
   return (
     <ul className="space-y-1 text-sm">

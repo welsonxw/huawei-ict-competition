@@ -16,11 +16,14 @@ import {
   treat,
   TREAT_COST,
 } from '../game/engine.js'
-import { drawFarm, drawIcon, TILE } from '../game/draw.js'
+import { drawFarm, TILE } from '../game/draw.js'
+import PixelIcon from './PixelIcon.jsx'
+import MyFarm from './MyFarm.jsx'
 import '@fontsource/pixelify-sans/400.css'
 import '@fontsource/pixelify-sans/700.css'
 
 const SAVE_KEY = 'taniguard-farm-v1'
+const MODE_KEY = 'taniguard-farm-mode'
 const MAX_SCALE = 4
 const FARMS = [
   { id: 'johor', lat: 1.8548, lon: 103.3345 },
@@ -45,24 +48,6 @@ const BAND_CLS = {
   unknown: 'bg-[#c0cbdc] text-[#3e2731]',
 }
 
-function PixelIcon({ name, size = 32, className = '' }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const ctx = ref.current?.getContext('2d')
-    if (ctx) drawIcon(ctx, name)
-  }, [name])
-  return (
-    <canvas
-      ref={ref}
-      width={16}
-      height={16}
-      aria-hidden="true"
-      className={className}
-      style={{ width: size, height: size, imageRendering: 'pixelated' }}
-    />
-  )
-}
-
 const clock = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
 
 function load() {
@@ -73,7 +58,7 @@ function load() {
   }
 }
 
-export default function FarmGame() {
+function SandboxGame() {
   const { t, lang } = useI18n()
   const [saved] = useState(load)
   const [game, setGame] = useState(() => saved?.game || newGame())
@@ -423,5 +408,31 @@ export default function FarmGame() {
         </div>
       </div>
     </section>
+  )
+}
+
+export default function FarmGame() {
+  const { t } = useI18n()
+  const [mode, setMode] = useState(() => localStorage.getItem(MODE_KEY) || 'sandbox')
+  const pick = (m) => {
+    localStorage.setItem(MODE_KEY, m)
+    setMode(m)
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t('gameMode')}>
+        {['mine', 'sandbox'].map((m) => (
+          <button
+            key={m}
+            onClick={() => pick(m)}
+            aria-pressed={mode === m}
+            className={`sv-btn pixel px-3 ${mode === m ? 'sv-btn-green' : ''}`}
+          >
+            {t(`gameMode_${m}`)}
+          </button>
+        ))}
+      </div>
+      {mode === 'mine' ? <MyFarm /> : <SandboxGame />}
+    </div>
   )
 }
