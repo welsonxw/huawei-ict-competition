@@ -50,6 +50,7 @@ export default function RoutineOptimiser({ plotId, onApplied }) {
   const requestNow = () =>
     run(async () => {
       setCmd(await apiPost(`/api/plots/${plotId}/commands`, { action: 'water', amount: best.litres, source: 'optimizer' }))
+      onApplied?.()
     })
   const confirm = () =>
     run(async () => {
@@ -57,6 +58,11 @@ export default function RoutineOptimiser({ plotId, onApplied }) {
       setCmd(c)
       onApplied?.()
       load()
+    })
+  const cancel = () =>
+    run(async () => {
+      setCmd(await apiPost(`/api/commands/${cmd.id}/cancel`))
+      onApplied?.()
     })
   const saveSchedule = () =>
     run(async () => {
@@ -104,7 +110,7 @@ export default function RoutineOptimiser({ plotId, onApplied }) {
             </p>
             <ul className="mt-1 list-disc pl-5 text-sm">
               {data.reasons.map((r) => (
-                <li key={r.code}>{t(reasonKey(r), reasonVars(r))}</li>
+                <li key={r.code}>{t(reasonKey(r), reasonVars(r, t))}</li>
               ))}
             </ul>
             <p className="mt-1 text-xs text-stone-600">
@@ -126,10 +132,17 @@ export default function RoutineOptimiser({ plotId, onApplied }) {
             <div className="space-y-2 rounded-lg border border-stone-200 p-3">
               <p className="font-semibold">{t(`ctlStatus_${cmd.status}`)}</p>
               <Checks checks={cmd.checks} />
-              {cmd.status === 'awaiting_confirmation' && !cmd.checks.some((c) => c.level === 'block') && (
-                <button disabled={busy} onClick={confirm} className="min-h-[44px] rounded-lg bg-leaf px-4 font-semibold text-white">
-                  {t(cmd.is_simulated ? 'ctlConfirmSim' : 'ctlConfirm')}
-                </button>
+              {cmd.status === 'awaiting_confirmation' && (
+                <div className="flex flex-wrap gap-2">
+                  {!cmd.checks.some((c) => c.level === 'block') && (
+                    <button disabled={busy} onClick={confirm} className="min-h-[44px] rounded-lg bg-leaf px-4 font-semibold text-white">
+                      {t(cmd.is_simulated ? 'ctlConfirmSim' : 'ctlConfirm')}
+                    </button>
+                  )}
+                  <button disabled={busy} onClick={cancel} className="min-h-[44px] rounded-lg border border-stone-400 px-4 font-semibold">
+                    {t('ctlCancel')}
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -171,7 +184,7 @@ export default function RoutineOptimiser({ plotId, onApplied }) {
             : t(`optFert_${fert.status}`, { ec: fert.ec ?? '', limit: fert.limit ?? '', earliest: fert.earliest ?? '–', h: fert.hours ?? '' })}
         </p>
         {(fert.reasons ?? []).map((r, i) => (
-          <p key={`${r.code}-${i}`}>{t(reasonKey(r), reasonVars(r))}</p>
+          <p key={`${r.code}-${i}`}>{t(reasonKey(r), reasonVars(r, t))}</p>
         ))}
         {fert.status === 'ok' && (
           <p className="text-xs text-stone-600">

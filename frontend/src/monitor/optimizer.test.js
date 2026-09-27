@@ -5,6 +5,8 @@ import { applyMode, reasonKey, reasonVars, scoreDelta } from './optimizer.js'
 test('reason keys and vars', () => {
   assert.equal(reasonKey({ code: 'vs_time' }), 'opt_vs_time')
   assert.deepEqual(reasonVars({ code: 'vs_time', time: '19:00', hours: 11.96 }), { time: '19:00', hours: '12' })
+  const t = (k) => (k === 'lrnTiming_morning' ? 'Pagi (05–10)' : k)
+  assert.deepEqual(reasonVars({ code: 'learned', timing: 'morning', rate: 10 }, t), { timing: 'Pagi (05–10)', rate: '10' })
 })
 
 test('apply mode', () => {
