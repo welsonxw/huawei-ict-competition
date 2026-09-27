@@ -56,9 +56,13 @@ def add_device(plot_id):
         return jsonify(error="plot not found"), 404
     data = request.get_json(silent=True) or {}
     simulated = data.get("simulated") is True
-    device, key = create_device(plot, data.get("name"), simulated=simulated)
+    kind = data.get("kind", "sensor")
+    try:
+        device, key = create_device(plot, data.get("name"), simulated=simulated, kind=kind)
+    except IoTError as exc:
+        return jsonify(error=str(exc)), 400
     body = {**device.to_dict(), "key": None if simulated else key}
-    if simulated:
+    if simulated and kind == "sensor":
         body["readings_added"] = simulate_device(device)
     return jsonify(body), 201
 

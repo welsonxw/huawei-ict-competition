@@ -1,5 +1,6 @@
 from .assistant import bp as assistant_bp
 from .auth import bp as auth_bp
+from .control import bp as control_bp
 from .fertiliser import bp as fertiliser_bp
 from .game import bp as game_bp
 from .health import bp as health_bp
@@ -23,3 +24,4 @@ def register_routes(app):
     app.register_blueprint(system_bp, url_prefix="/api")
     app.register_blueprint(game_bp, url_prefix="/api")
     app.register_blueprint(iot_bp, url_prefix="/api")
+    app.register_blueprint(control_bp, url_prefix="/api")

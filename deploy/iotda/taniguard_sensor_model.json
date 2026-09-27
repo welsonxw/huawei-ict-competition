@@ -6,14 +6,153 @@
       "service_type": "Sensor",
       "description": "Soil and air readings from one field node",
       "properties": [
-        {"property_name": "soil_moisture_pct", "data_type": "decimal", "min": "0", "max": "100", "unit": "%", "method": "R", "required": false},
-        {"property_name": "soil_temp_c", "data_type": "decimal", "min": "-5", "max": "70", "unit": "°C", "method": "R", "required": false},
-        {"property_name": "air_temp_c", "data_type": "decimal", "min": "-5", "max": "60", "unit": "°C", "method": "R", "required": false},
-        {"property_name": "air_rh_pct", "data_type": "decimal", "min": "0", "max": "100", "unit": "%", "method": "R", "required": false},
-        {"property_name": "soil_ec_ds_m", "data_type": "decimal", "min": "0", "max": "20", "unit": "dS/m", "method": "R", "required": false},
-        {"property_name": "light_lux", "data_type": "decimal", "min": "0", "max": "200000", "unit": "lux", "method": "R", "required": false},
-        {"property_name": "battery_pct", "data_type": "decimal", "min": "0", "max": "100", "unit": "%", "method": "R", "required": false},
-        {"property_name": "leaf_wet", "data_type": "int", "min": "0", "max": "1", "method": "R", "required": false}
+        {
+          "property_name": "soil_moisture_pct",
+          "data_type": "decimal",
+          "min": "0",
+          "max": "100",
+          "unit": "%",
+          "method": "R",
+          "required": false
+        },
+        {
+          "property_name": "soil_temp_c",
+          "data_type": "decimal",
+          "min": "-5",
+          "max": "70",
+          "unit": "°C",
+          "method": "R",
+          "required": false
+        },
+        {
+          "property_name": "air_temp_c",
+          "data_type": "decimal",
+          "min": "-5",
+          "max": "60",
+          "unit": "°C",
+          "method": "R",
+          "required": false
+        },
+        {
+          "property_name": "air_rh_pct",
+          "data_type": "decimal",
+          "min": "0",
+          "max": "100",
+          "unit": "%",
+          "method": "R",
+          "required": false
+        },
+        {
+          "property_name": "soil_ec_ds_m",
+          "data_type": "decimal",
+          "min": "0",
+          "max": "20",
+          "unit": "dS/m",
+          "method": "R",
+          "required": false
+        },
+        {
+          "property_name": "light_lux",
+          "data_type": "decimal",
+          "min": "0",
+          "max": "200000",
+          "unit": "lux",
+          "method": "R",
+          "required": false
+        },
+        {
+          "property_name": "battery_pct",
+          "data_type": "decimal",
+          "min": "0",
+          "max": "100",
+          "unit": "%",
+          "method": "R",
+          "required": false
+        },
+        {
+          "property_name": "leaf_wet",
+          "data_type": "int",
+          "min": "0",
+          "max": "1",
+          "method": "R",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service_id": "Irrigation",
+      "service_type": "Irrigation",
+      "description": "Water valve",
+      "properties": [],
+      "commands": [
+        {
+          "command_name": "WATER",
+          "paras": [
+            {
+              "para_name": "litres",
+              "data_type": "decimal",
+              "min": "0",
+              "max": "100000",
+              "unit": "L",
+              "required": true
+            },
+            {
+              "para_name": "duration_s",
+              "data_type": "int",
+              "min": "0",
+              "max": "86400",
+              "unit": "s",
+              "required": true
+            }
+          ],
+          "responses": [
+            {
+              "response_name": "COMMAND_RESPONSE",
+              "paras": [
+                {
+                  "para_name": "result",
+                  "data_type": "string",
+                  "max_length": 64,
+                  "required": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "service_id": "Fertigation",
+      "service_type": "Fertigation",
+      "description": "Fertiliser doser",
+      "properties": [],
+      "commands": [
+        {
+          "command_name": "FERTILISE",
+          "paras": [
+            {
+              "para_name": "grams",
+              "data_type": "decimal",
+              "min": "0",
+              "max": "100000",
+              "unit": "g",
+              "required": true
+            }
+          ],
+          "responses": [
+            {
+              "response_name": "COMMAND_RESPONSE",
+              "paras": [
+                {
+                  "para_name": "result",
+                  "data_type": "string",
+                  "max_length": 64,
+                  "required": false
+                }
+              ]
+            }
+          ]
+        }
       ]
     }
   ]

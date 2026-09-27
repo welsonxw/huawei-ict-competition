@@ -29,6 +29,10 @@ class Config:
     MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
     IOTDA_PRODUCT_ID = os.getenv("IOTDA_PRODUCT_ID", "")
     IOTDA_PUSH_TOKEN = os.getenv("IOTDA_PUSH_TOKEN", "")
+    # Command downlink through the IoTDA application API (e.g. https://<id>.iotda-app.<region>.myhuaweicloud.com).
+    IOTDA_API_ENDPOINT = os.getenv("IOTDA_API_ENDPOINT", "")
+    IOTDA_PROJECT_ID = os.getenv("IOTDA_PROJECT_ID", "")
+    IOTDA_IAM_TOKEN = os.getenv("IOTDA_IAM_TOKEN", "")
     ENABLE_SCHEDULER = os.getenv("ENABLE_SCHEDULER", "false").lower() == "true"
     ENABLE_DEVICE_SIM = os.getenv("ENABLE_DEVICE_SIM", "false").lower() == "true"
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
@@ -48,3 +52,6 @@ class TestConfig(Config):
     MQTT_BROKER_URL = ""
     IOTDA_PRODUCT_ID = ""
     IOTDA_PUSH_TOKEN = ""
+    IOTDA_API_ENDPOINT = ""
+    IOTDA_PROJECT_ID = ""
+    IOTDA_IAM_TOKEN = ""

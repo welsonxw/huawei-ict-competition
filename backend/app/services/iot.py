@@ -21,20 +21,31 @@ def _hash_key(key):
 
 
 EXTERNAL_SIM_KIND = "sim-external"
+SENSOR_KIND = "sensor"
+ACTUATOR_KINDS = {"valve": "water", "doser": "fertilise"}
+ACTUATOR_NAMES = {"valve": "Water valve", "doser": "Fertiliser doser"}
 
 
-def create_device(plot, name=None, simulated=False, external=False):
+def create_device(plot, name=None, simulated=False, external=False, kind=SENSOR_KIND):
     """Register a device on a plot. Returns (device, plain_key); the key is only ever shown once.
 
     external=True marks a simulated device driven by scripts/device_simulator.py over HTTP
-    rather than by the in-app scheduler; it is still labelled "Simulated device"."""
+    rather than by the in-app scheduler; it is still labelled "Simulated device".
+    kind "valve" / "doser" registers an actuator for watering / fertiliser commands."""
+    if kind not in (SENSOR_KIND, *ACTUATOR_KINDS):
+        raise IoTError(f"unknown device kind {kind!r}")
     key = secrets.token_urlsafe(24)
+    if kind == SENSOR_KIND:
+        default_name = f"{SIMULATED_DEVICE_LABEL} – {plot.name}" if simulated else f"Sensor – {plot.name}"
+    else:
+        base = ACTUATOR_NAMES[kind]
+        default_name = f"{SIMULATED_DEVICE_LABEL} ({base.lower()}) – {plot.name}" if simulated else f"{base} – {plot.name}"
     device = Device(
         uid=f"tg-{plot.id}-{secrets.token_hex(4)}",
         plot_id=plot.id,
-        name=(name or "").strip()[:80] or (f"{SIMULATED_DEVICE_LABEL} – {plot.name}" if simulated else f"Sensor – {plot.name}"),
+        name=(name or "").strip()[:80] or default_name[:80],
         key_hash=_hash_key(key),
-        kind=EXTERNAL_SIM_KIND if simulated and external else "sensor",
+        kind=EXTERNAL_SIM_KIND if simulated and external and kind == SENSOR_KIND else kind,
         is_simulated=bool(simulated),
     )
     db.session.add(device)
@@ -157,7 +168,8 @@ def monitor(plot, hours=24, now=None):
     cfg = iot_config()
     now = now or utcnow()
     hours = max(1, min(int(hours), cfg["max_backfill_hours"]))
-    devices = Device.query.filter_by(plot_id=plot.id).order_by(Device.id).all()
+    devices = (Device.query.filter(Device.plot_id == plot.id, Device.kind.notin_(tuple(ACTUATOR_KINDS)))
+               .order_by(Device.id).all())
     readings = (SensorReading.query.filter(SensorReading.plot_id == plot.id,
                                            SensorReading.ts >= now - timedelta(hours=hours))
                 .order_by(SensorReading.ts).all())

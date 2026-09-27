@@ -212,3 +212,73 @@ class SensorReading(db.Model):
     def to_dict(self):
         return {"ts": self.ts.isoformat() + "Z", "device_id": self.device_id, "is_simulated": self.is_simulated,
                 **{m: getattr(self, m) for m in self.METRICS}}
+
+
+class DeviceCommand(db.Model):
+    """One watering/fertiliser command and its safety checks, confirmation and device acknowledgement."""
+
+    __tablename__ = "device_commands"
+    id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.String(40), nullable=False, unique=True)
+    plot_id = db.Column(db.Integer, db.ForeignKey("plots.id"), nullable=False, index=True)
+    device_id = db.Column(db.Integer, db.ForeignKey("devices.id"), nullable=False, index=True)
+    schedule_id = db.Column(db.Integer, db.ForeignKey("control_schedules.id"), nullable=True)
+    action = db.Column(db.String(16), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    unit = db.Column(db.String(8), nullable=False)
+    params = db.Column(db.JSON)
+    source = db.Column(db.String(16), nullable=False, default="manual")
+    status = db.Column(db.String(24), nullable=False, index=True)
+    checks = db.Column(db.JSON)
+    transport = db.Column(db.String(16))
+    is_simulated = db.Column(db.Boolean, nullable=False, default=False)
+    requested_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    result = db.Column(db.JSON)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    confirmed_at = db.Column(db.DateTime)
+    sent_at = db.Column(db.DateTime)
+    completed_at = db.Column(db.DateTime)
+    expires_at = db.Column(db.DateTime)
+
+    device = db.relationship("Device")
+    plot = db.relationship("Plot")
+
+    def to_dict(self):
+        def ts(v):
+            return v.isoformat() + "Z" if v else None
+
+        return {
+            "id": self.id, "request_id": self.request_id, "plot_id": self.plot_id, "device_id": self.device_id,
+            "device": self.device.name if self.device else None, "schedule_id": self.schedule_id,
+            "action": self.action, "amount": self.amount, "unit": self.unit, "params": self.params,
+            "source": self.source, "status": self.status, "checks": self.checks or [], "transport": self.transport,
+            "is_simulated": self.is_simulated, "result": self.result, "created_at": ts(self.created_at),
+            "confirmed_at": ts(self.confirmed_at), "sent_at": ts(self.sent_at),
+            "completed_at": ts(self.completed_at), "expires_at": ts(self.expires_at),
+        }
+
+
+class ControlSchedule(db.Model):
+    """A repeating watering/fertiliser routine at a local (MYT) time on chosen weekdays."""
+
+    __tablename__ = "control_schedules"
+    id = db.Column(db.Integer, primary_key=True)
+    plot_id = db.Column(db.Integer, db.ForeignKey("plots.id"), nullable=False, index=True)
+    device_id = db.Column(db.Integer, db.ForeignKey("devices.id"), nullable=True)
+    action = db.Column(db.String(16), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    time_local = db.Column(db.String(5), nullable=False)
+    days = db.Column(db.String(7), nullable=False, default="0123456")
+    enabled = db.Column(db.Boolean, nullable=False, default=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    last_run_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    plot = db.relationship("Plot")
+
+    def to_dict(self):
+        return {
+            "id": self.id, "plot_id": self.plot_id, "device_id": self.device_id, "action": self.action,
+            "amount": self.amount, "time_local": self.time_local, "days": self.days, "enabled": self.enabled,
+            "last_run_date": self.last_run_date.isoformat() if self.last_run_date else None,
+        }

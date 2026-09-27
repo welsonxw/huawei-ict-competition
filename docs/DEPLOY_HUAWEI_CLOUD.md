@@ -251,6 +251,7 @@ RDS takes automated backups (check the retention period under the instance's **B
 | `SESSION_COOKIE_SECURE` | `false` | `true` behind HTTPS |
 | `ENABLE_SCHEDULER` | `true` in compose | `true` |
 | `IOTDA_PRODUCT_ID` / `IOTDA_PUSH_TOKEN` | – | IoTDA product ID + random token in the forwarding URL |
+| `IOTDA_API_ENDPOINT` / `IOTDA_PROJECT_ID` / `IOTDA_IAM_TOKEN` | – | IoTDA application endpoint, project ID and IAM token for valve/doser commands |
 | `MQTT_BROKER_URL` / `MQTT_USERNAME` / `MQTT_PASSWORD` | set by `--profile iot` | only for a self-hosted broker |
 | `CORS_ORIGINS` | empty | empty (same origin) |
 | `DEMO_FARMER_PASSWORD` / `DEMO_EXPERT_PASSWORD` | – | optional |

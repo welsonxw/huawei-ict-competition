@@ -71,6 +71,36 @@ instance from this repository yet.
 The push endpoint always answers 200 (with `accepted: 0` and an error for bad messages or unknown devices) so that
 IoTDA does not blocklist the URL; a wrong token gets 404.
 
+## Commands
+
+Watering and fertiliser commands (Phase 11) use the IoTDA command format on every path:
+
+```json
+{"service_id": "Irrigation", "command_name": "WATER", "paras": {"litres": 30.0, "duration_s": 180}}
+{"service_id": "Fertigation", "command_name": "FERTILISE", "paras": {"grams": 200.0}}
+```
+
+The device replies with `{"result_code": 0, "paras": {...}}` (non-zero = failed). No reply within `ack_timeout_seconds`
+(`config/control.yaml`, 120 s) marks the command **expired**. The path is chosen from the device's last transport:
+
+| Device | Downlink | Reply |
+|---|---|---|
+| In-app "Simulated device" valve/doser | none; changes the simulated sensor | immediate |
+| HTTP (default) | device polls `GET /api/iot/commands` with `X-Device-Id` / `X-Device-Key` | `POST /api/iot/commands/<request_id>/response` |
+| Local MQTT (`transport = mqtt`, backend `MQTT_BROKER_URL` set, e.g. `mqtt://mosquitto:1883` in `.env`) | `$oc/devices/{uid}/sys/commands/request_id={request_id}` | `$oc/devices/{uid}/sys/commands/response/request_id={request_id}`, stored by `mqtt-bridge` |
+| Huawei IoTDA (`transport = iotda`, `IOTDA_API_ENDPOINT` / `IOTDA_PROJECT_ID` / `IOTDA_IAM_TOKEN` set) | `POST {endpoint}/v5/iot/{project_id}/devices/{device_id}/commands` (synchronous) | returned in the same HTTP response |
+
+The `Irrigation` and `Fertigation` services in `deploy/iotda/taniguard_sensor_model.json` define these commands.
+HTTP polling example:
+
+```bash
+curl -H "X-Device-Id: $ID" -H "X-Device-Key: $KEY" http://localhost:8080/api/iot/commands
+curl -X POST -H "X-Device-Id: $ID" -H "X-Device-Key: $KEY" -H 'Content-Type: application/json' \
+  -d '{"result_code": 0, "paras": {"result": "success"}}' http://localhost:8080/api/iot/commands/<request_id>/response
+```
+
+The IAM token expires after 24 hours (same as ModelArts); refresh it with the command in DEPLOY_HUAWEI_CLOUD.md.
+
 ## Real hardware
 
 An ESP32 with a capacitive soil-moisture probe and a DHT22/SHT31 can use Huawei's IoT Device SDK or any MQTT client
@@ -82,3 +112,5 @@ with the credentials above and publish the payload shown at the top. No TaniGuar
 - Device property reporting (topic and payload): https://support.huaweicloud.com/intl/en-us/api-iothub/iot_06_v5_3010.html
 - Push a device property reporting notification (forwarded format): https://support.huaweicloud.com/intl/en-us/api-iothub/iot_06_v5_01202.html
 - HTTP/HTTPS data forwarding: https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0001.html
+- Command delivery (synchronous commands, MQTT command topics): https://support.huaweicloud.com/intl/en-us/usermanual-iothub/iot_01_0339.html
+- Deliver a command to a device (application API): https://support.huaweicloud.com/intl/en-us/api-iothub/iot_06_v5_0038.html
