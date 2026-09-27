@@ -31,16 +31,17 @@ def locate(lat, lon):
     return cell_id(lat, lon, cfg["grid"]["cell_deg"]), region
 
 
-def create_plot(name, crop, lat, lon, area_m2=None, num_plants=None, is_simulated=False):
+def create_plot(name, crop, lat, lon, area_m2=None, num_plants=None, is_simulated=False, owner=None):
     cell, region = locate(lat, lon)
     plot = Plot(name=name, crop=crop, lat=lat, lon=lon, grid_cell=cell, region=region,
-                area_m2=area_m2, num_plants=num_plants, is_simulated=is_simulated)
+                area_m2=area_m2, num_plants=num_plants, is_simulated=is_simulated,
+                owner_id=owner.id if owner else None)
     db.session.add(plot)
     db.session.commit()
     return plot
 
 
-def run_scan(image_bytes, crop, plot: Plot | None, lat=None, lon=None):
+def run_scan(image_bytes, crop, plot: Plot | None, lat=None, lon=None, user=None):
     if crop not in CROPS:
         raise ScanError("crop must be chilli or tomato")
     try:
@@ -76,6 +77,7 @@ def run_scan(image_bytes, crop, plot: Plot | None, lat=None, lon=None):
         top3=result["top3"], severity=result["severity"], lat=lat, lon=lon, grid_cell=cell, region=region,
         image_path=image_path, heatmap_path=heatmap_path, model_version=result["model_version"],
         is_stub=result["is_stub"], review_status="pending" if low_conf else "none",
+        user_id=user.id if user else None,
     )
     db.session.add(scan)
     db.session.commit()

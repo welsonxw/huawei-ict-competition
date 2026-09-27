@@ -118,6 +118,8 @@ export default function FarmMonitor() {
 
       {error && <p className="text-red-700">{errorText(error, t)}</p>}
 
+      {plots.length === 0 && !error && <p className="rounded-lg bg-stone-100 px-3 py-2">{t('monNoPlots')}</p>}
+
       {data?.simulated && (
         <p role="note" className="rounded-lg bg-amber-100 px-3 py-2 font-semibold text-amber-900">
           {t('monSimBanner')}

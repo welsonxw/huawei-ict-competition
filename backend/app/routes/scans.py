@@ -4,7 +4,7 @@ from flask import Blueprint, Response, abort, jsonify, request
 
 from ..extensions import db
 from ..models import Plot, Scan
-from ..services.auth import login_required
+from ..services.auth import can_access_plot, can_access_scan, current_user, login_required, visible_plots, visible_scans
 from ..services.scans import CROPS, ScanError, create_plot, run_scan
 from ..services.storage import get_storage
 
@@ -14,7 +14,7 @@ bp = Blueprint("scans", __name__)
 @bp.get("/plots")
 @login_required()
 def list_plots():
-    q = Plot.query
+    q = visible_plots(current_user())
     if request.args.get("include_simulated") != "true":
         q = q.filter_by(is_simulated=False)
     return jsonify([p.to_dict() for p in q.order_by(Plot.id).all()])
@@ -34,7 +34,7 @@ def add_plot():
         return jsonify(error="crop must be chilli or tomato"), 400
     if not (math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180):
         return jsonify(error="lat/lon out of range"), 400
-    plot = create_plot(name, crop, lat, lon, data.get("area_m2"), data.get("num_plants"))
+    plot = create_plot(name, crop, lat, lon, data.get("area_m2"), data.get("num_plants"), owner=current_user())
     return jsonify(plot.to_dict()), 201
 
 
@@ -48,7 +48,7 @@ def create_scan():
     plot = None
     if request.form.get("plot_id"):
         plot = db.session.get(Plot, int(request.form["plot_id"]))
-        if plot is None:
+        if not can_access_plot(current_user(), plot):
             return jsonify(error="plot not found"), 404
     lat = request.form.get("lat", type=float)
     lon = request.form.get("lon", type=float)
@@ -57,7 +57,7 @@ def create_scan():
     ):
         return jsonify(error="lat/lon out of range"), 400
     try:
-        _, payload = run_scan(file.read(), crop, plot, lat, lon)
+        _, payload = run_scan(file.read(), crop, plot, lat, lon, user=current_user())
     except ScanError as exc:
         return jsonify(error=str(exc)), 400
     return jsonify(payload), 201
@@ -66,7 +66,7 @@ def create_scan():
 @bp.get("/scans")
 @login_required()
 def list_scans():
-    q = Scan.query
+    q = visible_scans(current_user())
     if request.args.get("plot_id"):
         q = q.filter_by(plot_id=int(request.args["plot_id"]))
     limit = min(int(request.args.get("limit", 20)), 200)
@@ -74,7 +74,9 @@ def list_scans():
 
 
 def _file(scan_id, attr, mimetype):
-    scan = db.session.get(Scan, scan_id) or abort(404)
+    scan = db.session.get(Scan, scan_id)
+    if not can_access_scan(current_user(), scan):
+        abort(404)
     key = getattr(scan, attr) or abort(404)
     return Response(get_storage().read(key), mimetype=mimetype, headers={"Cache-Control": "max-age=86400"})
 

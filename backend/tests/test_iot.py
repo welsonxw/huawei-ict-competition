@@ -2,7 +2,8 @@ import random
 from datetime import timedelta
 
 import pytest
-from app.models import Device, SensorReading
+from app.extensions import db
+from app.models import Device, SensorReading, User
 from app.models.core import utcnow
 from app.services.config_loader import iot
 from app.services.device_sim import simulate_device, step
@@ -19,6 +20,11 @@ def plot(app):
 @pytest.fixture
 def no_weather(monkeypatch):
     monkeypatch.setattr("app.services.device_sim.get_forecast", lambda lat, lon: None)
+
+
+def own(plot, username="farmer"):
+    plot.owner_id = User.query.filter_by(username=username).one().id
+    db.session.commit()
 
 
 def headers(device, key):
@@ -72,6 +78,7 @@ def test_monitor_requires_login(client, plot):
 
 def test_monitor_status_and_alerts(client, plot):
     login(client, "farmer")
+    own(plot)
     device, key = create_device(plot)
     now = utcnow()
     readings = [{"ts": iso(now - timedelta(minutes=30 * i)), "soil_moisture_pct": 15.0, "air_temp_c": 30,
@@ -99,6 +106,7 @@ def test_monitor_flags_offline_device(app, plot):
 
 def test_add_simulated_device_backfills_and_is_labelled(client, plot, no_weather):
     login(client, "farmer")
+    own(plot)
     res = client.post(f"/api/plots/{plot.id}/devices", json={"simulated": True})
     body = res.get_json()
     assert res.status_code == 201 and body["key"] is None and body["is_simulated"] is True
@@ -112,6 +120,7 @@ def test_add_simulated_device_backfills_and_is_labelled(client, plot, no_weather
 
 def test_real_device_key_returned_once(client, plot):
     login(client, "farmer")
+    own(plot)
     body = client.post(f"/api/plots/{plot.id}/devices", json={"name": "ESP32 north bed"}).get_json()
     assert body["key"] and body["is_simulated"] is False and body["name"] == "ESP32 north bed"
     listed = client.get(f"/api/plots/{plot.id}/devices").get_json()
@@ -164,3 +173,17 @@ def test_external_simulated_device_uses_http_not_scheduler(client, plot, no_weat
     res = client.post("/api/iot/readings", json={"soil_moisture_pct": 30}, headers=headers(device, key))
     assert res.get_json()["is_simulated"] is True
     assert SensorReading.query.one().is_simulated is True
+
+
+def test_farmer_cannot_see_other_farmers_plot(client, plot):
+    login(client, "farmer", "other")
+    own(plot, "other")
+    client.post("/api/auth/logout")
+    login(client, "farmer")
+    assert client.get(f"/api/plots/{plot.id}/monitor").status_code == 404
+    assert client.get(f"/api/plots/{plot.id}/devices").status_code == 404
+    assert client.post(f"/api/plots/{plot.id}/devices", json={"simulated": True}).status_code == 404
+    assert client.get("/api/plots").get_json() == []
+    client.post("/api/auth/logout")
+    login(client, "expert")
+    assert client.get(f"/api/plots/{plot.id}/monitor").status_code == 200

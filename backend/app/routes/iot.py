@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from ..models import Device
-from ..services.auth import login_required
+from ..services.auth import can_access_plot, current_user, login_required
 from ..services.device_sim import simulate_device
 from ..services.iot import IoTError, authenticate_device, create_device, get_plot, ingest, monitor
 
@@ -27,7 +27,7 @@ def post_readings():
 @login_required()
 def list_devices(plot_id):
     plot = get_plot(plot_id)
-    if plot is None:
+    if not can_access_plot(current_user(), plot):
         return jsonify(error="plot not found"), 404
     return jsonify([d.to_dict() for d in Device.query.filter_by(plot_id=plot.id).order_by(Device.id)])
 
@@ -36,7 +36,7 @@ def list_devices(plot_id):
 @login_required()
 def add_device(plot_id):
     plot = get_plot(plot_id)
-    if plot is None:
+    if not can_access_plot(current_user(), plot):
         return jsonify(error="plot not found"), 404
     data = request.get_json(silent=True) or {}
     simulated = data.get("simulated") is True
@@ -51,7 +51,7 @@ def add_device(plot_id):
 @login_required()
 def plot_monitor(plot_id):
     plot = get_plot(plot_id)
-    if plot is None:
+    if not can_access_plot(current_user(), plot):
         return jsonify(error="plot not found"), 404
     try:
         hours = int(request.args.get("hours", 24))
