@@ -25,6 +25,7 @@ class Config:
     LLM_API_KEY = os.getenv("LLM_API_KEY", "")
     LLM_MODEL = os.getenv("LLM_MODEL", "")
     ENABLE_SCHEDULER = os.getenv("ENABLE_SCHEDULER", "false").lower() == "true"
+    ENABLE_DEVICE_SIM = os.getenv("ENABLE_DEVICE_SIM", "false").lower() == "true"
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
     SECRET_KEY = os.getenv("SECRET_KEY", "")
     SESSION_COOKIE_HTTPONLY = True
@@ -37,4 +38,5 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     REDIS_URL = "fakeredis://"
     ENABLE_SCHEDULER = False
+    ENABLE_DEVICE_SIM = False
     SECRET_KEY = "test-secret"

@@ -3,7 +3,7 @@
 TaniGuard has three layers: the **farm layer** (scan, action plan, fertiliser), the **community layer** (outbreak risk map) and the **national layer** (tonnes at risk per state). One Flask API and one React app serve all three.
 
 ```
-             React + Vite + Tailwind (BM / EN)          Scan · Outbreak map · National dashboard · Behind the scenes
+             React + Vite + Tailwind (BM / EN)          Scan · Farm monitor · Outbreak map · National · Farm game · Behind the scenes
                            │  /api (same origin, session cookie)
              Flask API (Gunicorn)  ──────────────  APScheduler: weather + risk refresh every 3 h (Redis lock)
   ┌──────────────┬───────────────┬────────────────┬──────────────────┬──────────────────┐
@@ -24,6 +24,7 @@ TaniGuard has three layers: the **farm layer** (scan, action plan, fertiliser), 
 | Disease model | PyTorch in the backend | ModelArts real-time service (`ml/serve.py` image) | `PREDICTOR=remote` |
 | Assistant | rule-based templates | Pangu or any OpenAI-compatible LLM | `LLM_*` |
 | Weather | Open-Meteo | Open-Meteo | – |
+| Field sensors | "Simulated device" (in-app job or `scripts/device_simulator.py`) | same HTTP ingest now; Huawei IoTDA (MQTT) planned in Phase 10 | `ENABLE_DEVICE_SIM` |
 
 ## Main data flow
 
@@ -34,6 +35,22 @@ TaniGuard has three layers: the **farm layer** (scan, action plan, fertiliser), 
 5. The risk engine scores each grid cell: weather model score × (1 + distance- and age-weighted nearby reports). Results are cached.
 6. The national layer turns state-level incidence and severity into tonnes at risk using DOA 2023 production.
 7. Experts confirm or correct labels. Confirmed labels override the model in steps 5–6 and are exported as a folder-per-class zip to retrain the model; `ml/train.py` records accuracy for the Model v1 → v2 panel.
+
+## Farm monitor (Phase 9)
+
+```
+Simulated device (scheduler job, 15 min)   ─┐
+scripts/device_simulator.py / ESP32 (HTTP) ─┼─> POST /api/iot/readings (X-Device-Id / X-Device-Key)
+                                            │      validate ranges + timestamp → sensor_readings (MySQL/RDS)
+Huawei IoTDA via MQTT (Phase 10, planned)  ─┘
+GET /api/plots/<id>/monitor → latest values, status vs crop target band, alerts, history → Farm monitor tab
+```
+
+- Each `Device` belongs to a plot and authenticates with a random key stored only as a SHA-256 hash; the key is shown once.
+- Readings: soil moisture, soil and air temperature, humidity, leaf wetness, EC (nutrient proxy), light, battery.
+- Alerts: device offline, value outside the crop target band, leaves wet ≥ 6 h in a row, low battery.
+- Simulated devices run a simple soil-water bucket model driven by the Open-Meteo forecast for the plot (synthetic day/night pattern when offline). Their readings are flagged `is_simulated` and the UI shows **"Simulated device"**.
+- Target bands and alert limits live in `config/iot.yaml` and are engineering placeholders (`docs/TODO_SOURCES.md`).
 
 ## Code map
 
@@ -46,6 +63,7 @@ TaniGuard has three layers: the **farm layer** (scan, action plan, fertiliser), 
 | `backend/app/services/national.py` | state-level tonnes at risk |
 | `backend/app/services/fertiliser.py` | linear-programming fertiliser planner |
 | `backend/app/services/review.py`, `assistant.py`, `auth.py` | expert loop, assistant, login |
+| `backend/app/services/iot.py`, `device_sim.py` | devices, reading ingest, monitor status, device simulator |
 | `ml/` | ResNet9, Grad-CAM, training, ModelArts server |
 | `config/` | every tunable number, with `TODO: verify source` where a source is still missing |
 
@@ -54,3 +72,4 @@ TaniGuard has three layers: the **farm layer** (scan, action plan, fertiliser), 
 - Production: DOA vegetable statistics 2023 (see `config/production.yaml`).
 - Anything without a source is marked `TODO: verify source` (see `docs/TODO_SOURCES.md`).
 - All demo data is flagged `is_simulated` and labelled **"Simulated scenario"** in the UI; it is never mixed into live results or exported for training.
+- Readings from simulated sensors are flagged `is_simulated` and labelled **"Simulated device"**.

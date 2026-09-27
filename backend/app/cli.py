@@ -3,10 +3,13 @@ import os
 import click
 from flask import Flask
 
-from .models import Plot
+from .extensions import db
+from .models import Device, Plot
 from .services.auth import ROLES, create_user
 from .services.demo import clear_demo, seed_demo
+from .services.device_sim import run_simulated_devices, simulate_device
 from .services.fertiliser import seed_fertiliser
+from .services.iot import create_device
 from .services.profiles import seed_profiles
 from .services.risk_engine import refresh_all
 from .services.scans import create_plot
@@ -59,3 +62,32 @@ def register_cli(app: Flask):
     def refresh_risk_cmd():
         """Fetch weather for active cells and recompute all risk layers now."""
         click.echo(refresh_all())
+
+    @app.cli.command("sim-devices")
+    @click.option("--add", is_flag=True, help="First attach a Simulated device to every real plot that has no device.")
+    @click.option("--hours", type=int, default=None, help="Backfill window for devices with no history.")
+    def sim_devices_cmd(add, hours):
+        """Advance all Simulated devices up to now (readings labelled "Simulated device")."""
+        if add:
+            for plot in Plot.query.filter_by(is_simulated=False).order_by(Plot.id):
+                if not Device.query.filter_by(plot_id=plot.id).first():
+                    device, _ = create_device(plot, simulated=True)
+                    click.echo(f"added {device.uid} to {plot.name}")
+        if hours:
+            for device in Device.query.filter_by(is_simulated=True, kind="sensor"):
+                click.echo(f"{device.uid}: +{simulate_device(device, backfill_hours=hours)} readings")
+        else:
+            for uid, n in run_simulated_devices().items():
+                click.echo(f"{uid}: +{n} readings")
+
+    @app.cli.command("add-device")
+    @click.argument("plot_id", type=int)
+    @click.option("--name", default=None)
+    @click.option("--simulated", is_flag=True, help="For scripts/device_simulator.py: labelled \"Simulated device\".")
+    def add_device_cmd(plot_id, name, simulated):
+        """Register a sensor on a plot and print its one-time key."""
+        plot = db.session.get(Plot, plot_id)
+        if plot is None:
+            raise click.ClickException("plot not found")
+        device, key = create_device(plot, name, simulated=simulated, external=simulated)
+        click.echo(f"device id:  {device.uid}\ndevice key: {key}\n(store the key now; it is not shown again)")

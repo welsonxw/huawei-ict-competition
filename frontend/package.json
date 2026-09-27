@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node --test src/game/",
+    "test": "node --test src/game/ src/monitor/",
     "preview": "vite preview"
   },
   "dependencies": {

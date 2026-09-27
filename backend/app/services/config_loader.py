@@ -51,6 +51,10 @@ def production(config_dir=None):
     return load_config("production.yaml", config_dir)
 
 
+def iot(config_dir=None):
+    return load_config("iot.yaml", config_dir)
+
+
 def damage_functions(config_dir=None):
     return load_config("damage_functions.yaml", config_dir)
 

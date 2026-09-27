@@ -158,3 +158,54 @@ class CropRequirement(db.Model):
             "crop": self.crop, "stage": self.stage, "n": self.n, "p2o5": self.p2o5, "k2o": self.k2o,
             "is_placeholder": self.is_placeholder, "source": self.source,
         }
+
+
+class Device(db.Model):
+    """A field sensor node attached to a plot. is_simulated devices are labelled "Simulated device"."""
+
+    __tablename__ = "devices"
+    id = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.String(64), nullable=False, unique=True)
+    plot_id = db.Column(db.Integer, db.ForeignKey("plots.id"), nullable=False, index=True)
+    name = db.Column(db.String(80), nullable=False)
+    kind = db.Column(db.String(32), nullable=False, default="sensor")
+    key_hash = db.Column(db.String(255), nullable=False)
+    is_simulated = db.Column(db.Boolean, nullable=False, default=False)
+    sim_state = db.Column(db.JSON)
+    last_seen_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    plot = db.relationship("Plot")
+
+    def to_dict(self):
+        return {
+            "id": self.id, "uid": self.uid, "plot_id": self.plot_id, "name": self.name, "kind": self.kind,
+            "is_simulated": self.is_simulated,
+            "last_seen_at": self.last_seen_at.isoformat() + "Z" if self.last_seen_at else None,
+        }
+
+
+class SensorReading(db.Model):
+    __tablename__ = "sensor_readings"
+    __table_args__ = (db.Index("ix_sensor_readings_plot_ts", "plot_id", "ts"),)
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey("devices.id"), nullable=False, index=True)
+    plot_id = db.Column(db.Integer, db.ForeignKey("plots.id"), nullable=False)
+    ts = db.Column(db.DateTime, nullable=False)
+    soil_moisture_pct = db.Column(db.Float)
+    soil_temp_c = db.Column(db.Float)
+    air_temp_c = db.Column(db.Float)
+    air_rh_pct = db.Column(db.Float)
+    soil_ec_ds_m = db.Column(db.Float)
+    light_lux = db.Column(db.Float)
+    battery_pct = db.Column(db.Float)
+    leaf_wet = db.Column(db.Boolean)
+    is_simulated = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    METRICS = ("soil_moisture_pct", "soil_temp_c", "air_temp_c", "air_rh_pct",
+               "soil_ec_ds_m", "light_lux", "battery_pct", "leaf_wet")
+
+    def to_dict(self):
+        return {"ts": self.ts.isoformat() + "Z", "device_id": self.device_id, "is_simulated": self.is_simulated,
+                **{m: getattr(self, m) for m in self.METRICS}}

@@ -1,0 +1,62 @@
+# Phase 9 – Farm monitor (sensor devices).
+#
+# PROVENANCE: every range below is an ENGINEERING DEFAULT chosen so the monitor
+# can raise alerts. None of them come from DOA/MARDI. They are flagged in the
+# UI as placeholders and listed in docs/TODO_SOURCES.md.
+# TODO(source): DOA/MARDI Pakej Teknologi Cili / Tomato – soil moisture, EC and
+# temperature ranges for fertigation / open-field growing in Malaysia.
+placeholder: true
+
+# A device is shown as Offline when its last reading is older than this.
+offline_minutes: 45
+
+# Accepted value range per metric (readings outside are rejected as sensor faults).
+metrics:
+  soil_moisture_pct: {unit: "%", min: 0, max: 100}
+  soil_temp_c: {unit: "°C", min: -5, max: 70}
+  air_temp_c: {unit: "°C", min: -5, max: 60}
+  air_rh_pct: {unit: "%", min: 0, max: 100}
+  soil_ec_ds_m: {unit: "dS/m", min: 0, max: 20}
+  light_lux: {unit: "lux", min: 0, max: 200000}
+  battery_pct: {unit: "%", min: 0, max: 100}
+  leaf_wet: {unit: "", bool: true}
+
+# Target (OK) band per crop. Outside the band = "low" / "high" status. TODO(source).
+targets:
+  chilli:
+    soil_moisture_pct: [25, 40]
+    soil_ec_ds_m: [0.5, 2.5]
+    air_temp_c: [18, 33]
+    air_rh_pct: [null, 90]
+  tomato:
+    soil_moisture_pct: [25, 40]
+    soil_ec_ds_m: [0.5, 3.0]
+    air_temp_c: [16, 32]
+    air_rh_pct: [null, 90]
+
+# Alert when leaves have been continuously wet for at least this many hours.
+leaf_wet_alert_hours: 6
+low_battery_pct: 20
+
+# Ingest limits
+max_batch: 200
+max_backfill_hours: 168
+max_future_minutes: 5
+
+# Device simulator (labelled "Simulated device"). Simple bucket model – NOT an
+# agronomic crop-water model; it only needs to move plausibly with the weather.
+simulator:
+  interval_minutes: 15
+  initial_backfill_hours: 24
+  root_zone_mm: 300          # 1 mm water ~= 100/300 % volumetric moisture
+  saturation_pct: 48
+  field_capacity_pct: 38
+  wilting_pct: 12
+  drainage_per_hour: 0.25    # fraction of water above field capacity drained per hour
+  rain_infiltration: 0.8
+  et_mm_per_hour_peak: 0.5   # midday evapotranspiration at 30 °C / 60 % RH
+  ec_decay_per_hour: 0.002   # dS/m lost per hour as plants take up nutrients
+  initial:
+    soil_moisture_pct: 32
+    soil_ec_ds_m: 1.6
+    battery_pct: 100
