@@ -6,6 +6,7 @@ from .core import (
     DeviceCommand,
     DiseaseProfile,
     FertiliserProduct,
+    HarvestRecord,
     Plot,
     Scan,
     SensorReading,
@@ -13,5 +14,5 @@ from .core import (
 )
 
 __all__ = [
-    "ConfirmedLabel", "ControlSchedule", "CropRequirement", "Device", "DeviceCommand", "DiseaseProfile", "FertiliserProduct", "Plot", "Scan", "SensorReading", "User",
+    "ConfirmedLabel", "ControlSchedule", "CropRequirement", "Device", "DeviceCommand", "DiseaseProfile", "FertiliserProduct", "HarvestRecord", "Plot", "Scan", "SensorReading", "User",
 ]

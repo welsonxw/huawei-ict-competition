@@ -93,6 +93,16 @@ schedule (every minute, MYT)  ─────┼─> safety checks ──> confi
 - The response carries reason codes (rendered BM/EN), `simulated_input` and `placeholder`. The Farm monitor panel can request the best watering now (command source `optimizer`, still confirm-first) or save it as a daily schedule; the My farm game shows a one-line advisor.
 - It is an estimate from engineering defaults, not a yield prediction. Learning from logged outcomes is Phase 14.
 
+## Learning optimiser v2 (Phase 14)
+
+`GET /api/plots/<id>/learning` (owner or expert) and `GET|POST /api/plots/<id>/harvests` (POST: owning farmer only).
+
+- Routine days: completed watering commands bucketed by local hour into morning / midday / evening / night (`config/optimizer.yaml` `learning.timings`); days with sensor readings but no watering count as "none".
+- Outcomes: each scan in the last 90 days is attributed once, to the most common timing on that plot in the 7 days before it; the effective (expert-confirmed) label decides sick vs healthy. Pooled across all plots of the same crop.
+- A timing qualifies with ≥ 14 logged days and ≥ 10 attributed scans; only when ≥ 2 timings qualify does the optimiser add `weight × (timing sick rate − pooled rate)` to each candidate's score (reason code `learned`). Otherwise it stays on the Phase 13 rules.
+- Harvest records give kg/m² per plot over 120 days, grouped by the plot's dominant timing; shown for comparison only (needs ≥ 3 plots per timing), not fed into the score.
+- Simulated commands, scans and harvests set `simulated` so the UI shows the Simulated device / Simulated scenario banner. The panel states it is association in logged data, not proof of cause.
+
 ## Code map
 
 | Path | What |

@@ -56,4 +56,5 @@ Nothing in this list may be invented. Until filled, the app runs on clearly flag
 | EC ceiling for fertiliser (top of EC band) | `config/iot.yaml` `targets` | TODO – DOA/MARDI |
 | Valve flow 10 L/min, ack timeout 120 s | `config/control.yaml` | Engineering default – set to the installed hardware |
 | Simulated doser EC effect | `config/control.yaml` `sim` | Engineering default – only drives the "Simulated device" |
+| Learning evidence thresholds (14 days, 10 scans, 3 plots), score weight, timing buckets | `config/optimizer.yaml` `learning` | Engineering default – replace with an agreed trial design / statistical test once real multi-season data exists |
 | Optimiser candidate times/amounts, score weights, drying hours, irrigation wets leaves | `config/optimizer.yaml` | TODO – DOA/MARDI irrigation timing and volume by growth stage; set `irrigation_wets_leaves: false` for drip |
