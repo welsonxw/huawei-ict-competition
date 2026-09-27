@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext.jsx'
 import { errorText } from '../lib/errors.js'
 import { COLS, ROWS, facing, move } from '../game/engine.js'
 import { drawFarm, TILE } from '../game/draw.js'
+import { reasonKey, reasonVars } from '../monitor/optimizer.js'
 import { hasActuator, isRaining, openCommand, sceneFromFarm, tileInfo } from '../game/myfarm.js'
 import { METRICS, formatValue } from '../monitor/format.js'
 import { Checks } from './FarmControls.jsx'
@@ -23,6 +24,7 @@ export default function MyFarm() {
   const [plotId, setPlotId] = useState('')
   const [farm, setFarm] = useState(null)
   const [outlook, setOutlook] = useState(null)
+  const [advice, setAdvice] = useState(null)
   const [error, setError] = useState(null)
   const [player, setPlayer] = useState({ x: 1, y: 3, dir: 'down' })
   const [selected, setSelected] = useState(null)
@@ -55,6 +57,9 @@ export default function MyFarm() {
         setError(null)
       })
       .catch(setError)
+    apiGet(`/api/plots/${plotId}/optimise`)
+      .then(setAdvice)
+      .catch(() => setAdvice(null))
   }, [plotId])
 
   useEffect(() => {
@@ -213,6 +218,17 @@ export default function MyFarm() {
                 </div>
               </div>
             </div>
+
+            {advice?.status === 'ok' && (
+              <p className="sv-parchment pixel px-2 py-1 text-sm" role="note">
+                <strong>{t('myAdvisor')}:</strong>{' '}
+                {advice.best.kind === 'skip'
+                  ? t('optSkip')
+                  : `${advice.best.litres} L ${t('optAt', { time: advice.best.time_local, h: advice.best.in_hours })}`}
+                {advice.reasons[0] && ` – ${t(reasonKey(advice.reasons[0]), reasonVars(advice.reasons[0]))}`}
+                <span className="block text-xs">{t('optEstimate')}</span>
+              </p>
+            )}
 
             <div className="relative mx-auto overflow-x-auto" style={{ maxWidth: COLS * TILE * MAX_SCALE }}>
               <canvas

@@ -6,6 +6,7 @@ AI crop-health app for chilli and tomato growers that turns farmers' leaf scans 
 - **Community layer** – outbreak risk map for today, +3 and +5 days from weather disease models plus nearby reports.
 - **National layer** – tonnes of chilli and tomato at risk per state in the next 14 days, from DOA 2023 production data.
 - **My farm game** – the Farm game's "My farm (live)" mode draws the farmer's own plot from its sensors, recent scans and forecast, and its Water/Fertilise buttons send the same safety-checked, confirm-first commands as the Farm monitor (source "game"). The sandbox game stays for demos.
+- **Routine optimiser** – ranks watering times and amounts for the next 24 h from the latest soil reading, the forecast and the safety rules (e.g. morning beats evening because leaves dry before night), suggests a fertiliser slot, and can send the pick as a confirm-first command or save it as a schedule. Labelled as an estimate, not a yield prediction.
 - **Learning loop** – experts confirm or correct low-confidence scans; confirmed scans export as a training set for the next model version.
 
 ## Huawei Cloud

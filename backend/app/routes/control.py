@@ -15,6 +15,7 @@ from ..services.control import (
     request_command,
 )
 from ..services.iot import authenticate_device, get_plot
+from ..services.optimizer import optimise
 
 bp = Blueprint("control", __name__)
 
@@ -44,6 +45,15 @@ def get_control(plot_id):
     if plot is None:
         return jsonify(error="plot not found"), 404
     return jsonify({**control_state(plot), "can_control": can_control(current_user(), plot)})
+
+
+@bp.get("/plots/<int:plot_id>/optimise")
+@login_required()
+def get_optimise(plot_id):
+    plot = _plot_or_404(plot_id)
+    if plot is None:
+        return jsonify(error="plot not found"), 404
+    return jsonify({**optimise(plot), "can_control": can_control(current_user(), plot)})
 
 
 @bp.post("/plots/<int:plot_id>/commands")

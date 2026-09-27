@@ -81,6 +81,18 @@ schedule (every minute, MYT)  ─────┼─> safety checks ──> confi
 - Payloads use the IoTDA command format (`service_id`, `command_name`, `paras`), so the same firmware works on HTTP, MQTT and IoTDA.
 - In-app simulated valves/dosers are labelled **"Simulated device"** and never claim real water or fertiliser was applied.
 
+## Routine optimiser v1 (Phase 13)
+
+`GET /api/plots/<id>/optimise` (owner or expert) ranks watering routines for the next 24 h:
+
+- Candidates: each time in `config/optimizer.yaml` `water.times` × each amount in `water.l_per_m2` (capped by the Phase 11 per-command limit), plus "skip".
+- Each candidate runs the Phase 9 soil-water bucket model (`device_sim.step`) hourly on the Open-Meteo forecast, starting from the latest soil-moisture reading (a typical-day pattern is used and flagged if the forecast is unavailable).
+- `score = w.moisture × mean %-points outside the crop target band + w.leaf_wet × extra leaf-wet hours caused by watering + w.water × L/m²`. Extra leaf wetness lasts until the next drying hour (07:00–18:00, RH below the leaf-wetness threshold) – the reason evening watering loses to morning watering.
+- Candidates the Phase 11 rules would block (rain ≥ `rain_skip_mm` in the window, over per-command/daily limit, projected soil already wet) are excluded; the farmer's enabled water schedules are scored alongside for comparison.
+- Fertiliser: earliest morning slot in 72 h that respects `min_hours_between`, has < `rain_warn_mm` rain in the following window and EC below the block level. No amount is recommended (DOA rates are placeholders).
+- The response carries reason codes (rendered BM/EN), `simulated_input` and `placeholder`. The Farm monitor panel can request the best watering now (command source `optimizer`, still confirm-first) or save it as a daily schedule; the My farm game shows a one-line advisor.
+- It is an estimate from engineering defaults, not a yield prediction. Learning from logged outcomes is Phase 14.
+
 ## Code map
 
 | Path | What |

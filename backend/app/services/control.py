@@ -90,7 +90,7 @@ def pick_actuator(plot, action, device_id=None):
     return device
 
 
-def _latest(plot, metric, max_age, now):
+def latest_value(plot, metric, max_age, now):
     col = getattr(SensorReading, metric)
     r = (SensorReading.query.filter(SensorReading.plot_id == plot.id, col.isnot(None),
                                     SensorReading.ts >= now - max_age, SensorReading.ts <= now + timedelta(minutes=5))
@@ -98,7 +98,7 @@ def _latest(plot, metric, max_age, now):
     return getattr(r, metric) if r else None
 
 
-def _used_today(plot, action, now):
+def used_today(plot, action, now):
     start_local = datetime.combine(local_now(now).date(), datetime.min.time())
     start = start_local - MYT
     rows = DeviceCommand.query.filter(DeviceCommand.plot_id == plot.id, DeviceCommand.action == action,
@@ -106,7 +106,7 @@ def _used_today(plot, action, now):
     return round(sum(r.amount for r in rows), 1)
 
 
-def _last_done(plot, action):
+def last_done(plot, action):
     return (DeviceCommand.query.filter(DeviceCommand.plot_id == plot.id, DeviceCommand.action == action,
                                        DeviceCommand.status.in_(USED))
             .order_by(DeviceCommand.created_at.desc()).first())
@@ -152,7 +152,7 @@ def evaluate(plot, device, action, amount, now=None, exclude_id=None):
         busy = busy.filter(DeviceCommand.id != exclude_id)
     if busy.first():
         out.append(check("block", "device_busy", device=device.name))
-    used = _used_today(plot, action, now)
+    used = used_today(plot, action, now)
     if used + amount > lim["max_day"]:
         out.append(check("block", f"{action}_daily_limit", used=used, amount=amount, max=lim["max_day"], unit=unit))
     else:
@@ -160,7 +160,7 @@ def evaluate(plot, device, action, amount, now=None, exclude_id=None):
 
     if action == "water":
         w = cfg["water"]
-        moisture = _latest(plot, "soil_moisture_pct", timedelta(minutes=w["moisture_max_age_minutes"]), now)
+        moisture = latest_value(plot, "soil_moisture_pct", timedelta(minutes=w["moisture_max_age_minutes"]), now)
         if moisture is None:
             out.append(check("warn", "moisture_unknown"))
         elif lim["skip_moisture_pct"] is not None and moisture >= lim["skip_moisture_pct"]:
@@ -178,12 +178,12 @@ def evaluate(plot, device, action, amount, now=None, exclude_id=None):
             out.append(check("warn", "evening_watering", hour=w["evening_warn_from_hour"]))
     else:
         f = cfg["fertilise"]
-        last = _last_done(plot, "fertilise")
+        last = last_done(plot, "fertilise")
         if last is not None:
             hours = (now - last.created_at).total_seconds() / 3600
             if hours < f["min_hours_between"]:
                 out.append(check("block", "fertilise_too_soon", hours=round(hours, 1), min=f["min_hours_between"]))
-        ec = _latest(plot, "soil_ec_ds_m", timedelta(minutes=cfg["water"]["moisture_max_age_minutes"]), now)
+        ec = latest_value(plot, "soil_ec_ds_m", timedelta(minutes=cfg["water"]["moisture_max_age_minutes"]), now)
         if ec is None:
             out.append(check("warn", "ec_unknown"))
         elif lim["block_ec"] is not None and ec >= lim["block_ec"]:
