@@ -33,3 +33,14 @@ Nothing in this list may be invented. Until filled, the app runs on clearly flag
 | Damage coefficients per disease | `config/damage_functions.yaml` | TODO – DOA/MARDI yield-loss studies (linear placeholder) |
 | Supply bands (Watch 2%, High 5%) | `config/thresholds.yaml` `national.supply_bands` | TODO – agree with FAMA/KPKM |
 | Minimum scans per state (20) | `config/thresholds.yaml` `national.min_scans` | Engineering default |
+
+## Farm monitor (Phase 9)
+
+| Value | File | Status / needed source |
+|---|---|---|
+| Soil-moisture target band per crop (25–40 %) | `config/iot.yaml` `targets` | TODO – DOA/MARDI Pakej Teknologi Cili / Tomato, calibrated to the sensor used |
+| EC (nutrient) target band per crop | `config/iot.yaml` `targets` | TODO – DOA/MARDI fertigation guidance |
+| Air temperature and humidity bands | `config/iot.yaml` `targets` | TODO – DOA/MARDI |
+| Leaf-wet alert (≥ 6 h) | `config/iot.yaml` `leaf_wet_alert_hours` | Engineering default, aligned with `rh_hours` in disease profiles |
+| Offline after 45 min, low battery 20 % | `config/iot.yaml` | Engineering default |
+| Simulator soil constants (root zone, field capacity, ET) | `config/iot.yaml` `simulator` | Engineering default – only drives the "Simulated device" |

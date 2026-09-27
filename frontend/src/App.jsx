@@ -5,12 +5,14 @@ import HealthStatus from './components/HealthStatus.jsx'
 import LoginBox from './components/LoginBox.jsx'
 import ArchitectureTab from './components/ArchitectureTab.jsx'
 import FarmGame from './components/FarmGame.jsx'
+import FarmMonitor from './components/FarmMonitor.jsx'
 import ScanTab from './components/ScanTab.jsx'
 import OutbreakMap from './components/OutbreakMap.jsx'
 import NationalDashboard from './components/NationalDashboard.jsx'
 
 const TABS = [
   { id: 'scan', label: 'tabScan', render: () => <ScanTab /> },
+  { id: 'monitor', label: 'tabMonitor', render: () => <FarmMonitor /> },
   { id: 'map', label: 'tabMap', render: () => <OutbreakMap /> },
   { id: 'nation', label: 'tabNation', render: () => <NationalDashboard /> },
   { id: 'game', label: 'tabGame', render: () => <FarmGame /> },
