@@ -4,6 +4,7 @@ import { apiGet, apiPost } from '../lib/api.js'
 import { useI18n } from '../i18n/LanguageContext.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
 import FarmControls from './FarmControls.jsx'
+import LearningPanel from './LearningPanel.jsx'
 import RoutineOptimiser from './RoutineOptimiser.jsx'
 import { errorText } from '../lib/errors.js'
 import { METRICS, alertKey, alertVars, chartRows, formatBand, formatValue, minutesAgo } from '../monitor/format.js'
@@ -210,6 +211,8 @@ export default function FarmMonitor() {
       {data && <FarmControls plotId={plotId} onApplied={load} />}
 
       {data && <RoutineOptimiser plotId={plotId} onApplied={load} />}
+
+      {data && <LearningPanel plotId={plotId} />}
 
       {data && (
         <section className="rounded-xl border border-stone-200 bg-white p-4" aria-live="polite">

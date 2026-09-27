@@ -282,3 +282,23 @@ class ControlSchedule(db.Model):
             "amount": self.amount, "time_local": self.time_local, "days": self.days, "enabled": self.enabled,
             "last_run_date": self.last_run_date.isoformat() if self.last_run_date else None,
         }
+
+
+class HarvestRecord(db.Model):
+    """A harvest the farmer logged for a plot – the yield outcome the Phase 14 learning compares routines against."""
+
+    __tablename__ = "harvest_records"
+    id = db.Column(db.Integer, primary_key=True)
+    plot_id = db.Column(db.Integer, db.ForeignKey("plots.id"), nullable=False, index=True)
+    harvested_on = db.Column(db.Date, nullable=False)
+    kg = db.Column(db.Float, nullable=False)
+    notes = db.Column(db.String(200))
+    is_simulated = db.Column(db.Boolean, nullable=False, default=False)
+    created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id, "plot_id": self.plot_id, "harvested_on": self.harvested_on.isoformat(), "kg": self.kg,
+            "notes": self.notes, "is_simulated": self.is_simulated, "created_at": self.created_at.isoformat() + "Z",
+        }

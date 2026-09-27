@@ -6,6 +6,7 @@ from .game import bp as game_bp
 from .health import bp as health_bp
 from .iot import bp as iot_bp
 from .national import bp as national_bp
+from .outcomes import bp as outcomes_bp
 from .review import bp as review_bp
 from .risk import bp as risk_bp
 from .scans import bp as scans_bp
@@ -25,3 +26,4 @@ def register_routes(app):
     app.register_blueprint(game_bp, url_prefix="/api")
     app.register_blueprint(iot_bp, url_prefix="/api")
     app.register_blueprint(control_bp, url_prefix="/api")
+    app.register_blueprint(outcomes_bp, url_prefix="/api")

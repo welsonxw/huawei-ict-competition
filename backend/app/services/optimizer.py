@@ -28,6 +28,7 @@ from .control import (
     used_today,
 )
 from .device_sim import step, synthetic_weather, weather_lookup
+from .learning import NONE, learn, timing_of
 from .weather import get_forecast
 
 ESTIMATE_LABEL = "Estimate – rules + forecast, not a yield prediction"
@@ -110,7 +111,9 @@ def _candidate(ctx, at, litres, kind="option"):
     sim = simulate(ctx["moisture"], weather, at, mm, ctx["sim_cfg"], ctx["wet_rh"], ctx["rain_mm"], ctx["band"])
     added = wet_from_watering(weather, at, ctx["forecast_wet"], ctx["cfg"]["water"]) if litres else 0
     w = ctx["cfg"]["weights"]
-    score = w["moisture"] * sim["mean_out_pct"] + w["leaf_wet"] * added + w["water"] * mm
+    timing = timing_of(weather[at][0].hour) if at is not None and litres else NONE
+    learned = ctx["learned"].get(timing, 0.0)
+    score = w["moisture"] * sim["mean_out_pct"] + w["leaf_wet"] * added + w["water"] * mm + learned
     blocked = []
     if at is not None:
         t = weather[at][0]
@@ -136,13 +139,19 @@ def _candidate(ctx, at, litres, kind="option"):
         "l_per_m2": round(mm, 2),
         "added_leaf_wet_hours": added,
         "score": round(score, 3),
+        "timing": timing,
+        "learned_adj": learned,
         "blocked": blocked,
         **sim,
     }
 
 
-def _reasons(best, skip, options):
+def _reasons(best, skip, options, learned):
     out = []
+    row = next((r for r in learned["timings"] if r["timing"] == best["timing"]), None)
+    if best["learned_adj"] and row:
+        out.append({"code": "learned", "timing": best["timing"], "rate": round(row["sick_rate"] * 100),
+                    "pooled": round(learned["pooled_sick_rate"] * 100), "days": row["days"], "scans": row["scans"]})
     if best["litres"] == 0:
         out.append({"code": "skip_best", "min_pct": skip["min_pct"]})
         if any("rain_forecast" in o["blocked"] for o in options):
@@ -202,8 +211,11 @@ def optimise(plot, now=None):
                                                    SensorReading.soil_moisture_pct.isnot(None))
                         .order_by(SensorReading.ts.desc()).first())
     moisture = latest_value(plot, "soil_moisture_pct", timedelta(minutes=ccfg["water"]["moisture_max_age_minutes"]), now)
+    learned = learn(plot, now)
     base = {
         "plot_id": plot.id,
+        "learning": {"status": learned["status"], "adjustments": learned["adjustments"],
+                     "simulated": learned["simulated"]},
         "generated_at": now.isoformat() + "Z",
         "horizon_hours": cfg["horizon_hours"],
         "forecast": forecast_ok,
@@ -222,7 +234,7 @@ def optimise(plot, now=None):
         return {**base, "status": "no_moisture"}
 
     forecast_wet = leaf_wet_forecast(weather, wcfg["leaf_wetness_rh"], wcfg["rain_mm_threshold"])
-    ctx = {"weather": weather, "weather_long": weather_long, "area": lim["area_m2"], "moisture": moisture, "band": band, "cfg": cfg,
+    ctx = {"learned": learned["adjustments"], "weather": weather, "weather_long": weather_long, "area": lim["area_m2"], "moisture": moisture, "band": band, "cfg": cfg,
            "sim_cfg": iot_config()["simulator"], "wet_rh": wcfg["leaf_wetness_rh"], "rain_mm": wcfg["rain_mm_threshold"],
            "forecast_wet": forecast_wet, "limits": lim, "water_rules": ccfg["water"], "today": start.date(),
            "used_today": used_today(plot, "water", now)}
@@ -241,7 +253,7 @@ def optimise(plot, now=None):
         **base,
         "status": "ok",
         "best": best,
-        "reasons": _reasons(best, skip, options),
+        "reasons": _reasons(best, skip, options, learned),
         "skip": skip,
         "schedules": schedules,
         "ranked": allowed[:5],

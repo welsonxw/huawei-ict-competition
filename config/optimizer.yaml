@@ -26,3 +26,20 @@ weights:
   moisture: 2.0
   leaf_wet: 0.5
   water: 0.1
+
+# Phase 14 – learning from logged outcomes. Evidence thresholds are ENGINEERING DEFAULTS, not statistical proof.
+# Until a timing has at least min_days of logged routine and min_scans follow-up scans (and at least two timings
+# qualify, so there is something to compare), the optimiser stays on the v1 rules above.
+learning:
+  window_days: 90
+  outcome_days: 7            # a scan is attributed to the most common watering timing in the 7 days before it
+  min_days: 14
+  min_scans: 10
+  weight: 5.0                # score += weight × (sick rate for this timing − pooled sick rate)
+  timings:                   # local hour ranges [start, end)
+    morning: [5, 10]
+    midday: [10, 16]
+    evening: [16, 22]
+  harvest:
+    season_days: 120
+    min_plots: 3
