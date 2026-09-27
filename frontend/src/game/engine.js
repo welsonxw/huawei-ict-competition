@@ -7,6 +7,19 @@ export const ROWS = 9
 export const FIELD = { x0: 3, x1: 12, y0: 3, y1: 7 } // inclusive soil area
 export const HOUSE = { x: 0, y: 0, w: 3, h: 2, door: { x: 1, y: 2 } }
 export const POND = { x: 12, y: 0, w: 2, h: 2 }
+export const TREES = [
+  { x: 0, y: 6 },
+  { x: 0, y: 8 },
+  { x: 1, y: 8 },
+]
+// Fence along the bottom and right of the field; the field is entered from the top and left.
+export const FENCE = [
+  ...Array.from({ length: 12 }, (_, i) => ({ x: 2 + i, y: 8 })),
+  ...Array.from({ length: 5 }, (_, i) => ({ x: 13, y: 3 + i })),
+]
+export const DAY_START = 6 * 60
+export const BEDTIME = 24 * 60
+export const ACTION_MINUTES = 10
 
 export const CROPS = {
   chilli: { seedCost: 10, harvestDay: 8, value: 30 },
@@ -36,7 +49,16 @@ export function mulberry32(seed) {
 
 export const isField = (x, y) => x >= FIELD.x0 && x <= FIELD.x1 && y >= FIELD.y0 && y <= FIELD.y1
 const inRect = (r, x, y) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
-export const isBlocked = (x, y) => x < 0 || y < 0 || x >= COLS || y >= ROWS || inRect(HOUSE, x, y) || inRect(POND, x, y)
+const onList = (list, x, y) => list.some((p) => p.x === x && p.y === y)
+export const isBlocked = (x, y) =>
+  x < 0 ||
+  y < 0 ||
+  x >= COLS ||
+  y >= ROWS ||
+  inRect(HOUSE, x, y) ||
+  inRect(POND, x, y) ||
+  onList(TREES, x, y) ||
+  onList(FENCE, x, y)
 export const isDoor = (x, y) => x === HOUSE.door.x && y === HOUSE.door.y
 export const nearPond = (x, y) => x >= POND.x - 1 && y <= POND.y
 
@@ -47,6 +69,7 @@ export function newGame(seed = Date.now()) {
     seed: seed >>> 0,
     rngState: seed >>> 0,
     day: 1,
+    minutes: DAY_START,
     coins: 100,
     seeds: { chilli: 4, tomato: 4 },
     water: 10,
@@ -92,7 +115,7 @@ export function tileAt(state, x, y) {
 }
 
 // Context action on the tile the player faces. Returns { state, event } where event names what happened.
-export function act(state, seedKind) {
+function actOnTile(state, seedKind) {
   const { x, y } = facing(state.player)
   if (isDoor(x, y) || isDoor(state.player.x, state.player.y)) return { state, event: 'door' }
   if (nearPond(x, y) || (x >= POND.x && y < POND.y + POND.h)) return { state: { ...state, water: 10 }, event: 'refill' }
@@ -133,6 +156,7 @@ export function act(state, seedKind) {
         stats: { ...state.stats, harvested: state.stats.harvested + 1 },
       },
       event: 'harvest',
+      crop: crop.kind,
     }
   }
   if (tile.watered) return { state, event: 'alreadyWatered' }
@@ -144,6 +168,16 @@ export function act(state, seedKind) {
     },
     event: 'water',
   }
+}
+
+// Each farm action takes ACTION_MINUTES of the day; after midnight the farmer is too tired and must sleep.
+export function act(state, seedKind) {
+  const minutes = state.minutes ?? DAY_START
+  const r = actOnTile(state, seedKind)
+  if (r.event === 'door' || r.event === 'none' || r.event === 'sick') return r
+  if (minutes >= BEDTIME) return { state, event: 'tooLate' }
+  if (r.state === state) return r
+  return { ...r, state: { ...r.state, minutes: minutes + ACTION_MINUTES } }
 }
 
 export function buySeed(state, kind) {
@@ -231,6 +265,7 @@ export function sleep(state, outlook) {
   return {
     ...state,
     day,
+    minutes: DAY_START,
     rngState: Math.floor(rng() * 4294967296),
     tiles,
     player: { x: HOUSE.door.x, y: HOUSE.door.y + 1, dir: 'down' },

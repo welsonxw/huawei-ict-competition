@@ -1,6 +1,21 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { act, buySeed, CROPS, DEATH_DAYS, horizonFor, isRainyDay, newGame, sleep, tileAt, treat } from './engine.js'
+import {
+  act,
+  BEDTIME,
+  buySeed,
+  CROPS,
+  DAY_START,
+  DEATH_DAYS,
+  horizonFor,
+  isBlocked,
+  isRainyDay,
+  move,
+  newGame,
+  sleep,
+  tileAt,
+  treat,
+} from './engine.js'
 
 const onField = (s) => ({ ...s, player: { x: 4, y: 2, dir: 'down' } }) // facing (4,3), a field tile
 
@@ -46,6 +61,7 @@ test('till, plant, water, grow and harvest', () => {
   }
   const r = act(s, 'chilli')
   assert.equal(r.event, 'harvest')
+  assert.equal(r.crop, 'chilli')
   assert.ok(r.state.coins > 0 && r.state.stats.harvested === 1)
 })
 
@@ -77,4 +93,23 @@ test('seeds cost coins', () => {
   const s = buySeed(newGame(1), 'tomato')
   assert.equal(s.seeds.tomato, 5)
   assert.equal(s.coins, 100 - CROPS.tomato.seedCost)
+})
+
+test('actions use up the day and sleep resets the clock', () => {
+  let s = onField(newGame(1))
+  s = act(s, 'chilli').state
+  assert.equal(s.minutes, DAY_START + 10)
+  assert.equal(act(s, 'chilli').state.minutes, DAY_START + 20)
+  const late = { ...s, minutes: BEDTIME }
+  assert.equal(act(late, 'chilli').event, 'tooLate')
+  assert.equal(sleep(late, null).minutes, DAY_START)
+})
+
+test('trees and fence block walking; field stays reachable', () => {
+  assert.equal(isBlocked(0, 6), true)
+  assert.equal(isBlocked(5, 8), true)
+  assert.equal(isBlocked(13, 4), true)
+  let s = newGame(1)
+  for (const d of ['right', 'right', 'right', 'down']) s = move(s, d)
+  assert.deepEqual([s.player.x, s.player.y], [4, 4])
 })
